@@ -19,7 +19,7 @@ recetas = {
             "4. Coloca la carne en el pan, agrega el queso, lechuga, tomate y salsas.",
             "5. ¡Disfruta tu hamburguesa!"
         ],
-        "foto": "https://www.portafolio.co/files/article_new_multimedia/uploads/2022/04/12/6255e2e41db6c.jpeg"  # Asegúrate de que la imagen esté en la carpeta correcta
+        "foto": "https://www.portafolio.co/files/article_new_multimedia/uploads/2022/04/12/6255e2e41db6c.jpeg" 
     },
     "Sancocho": {
         "ingredientes": [
@@ -36,7 +36,7 @@ recetas = {
             "3. Cocina a fuego lento por aproximadamente 30 minutos.",
             "4. Sirve caliente y disfruta."
         ],
-        "foto": "imagenes/sancocho.jpg"  # Asegúrate de que la imagen esté en la carpeta correcta
+        "https://www.elespectador.com/resizer/v2/NPCOUP725ZBQBCLN6TJ5RUSHHI.jpg?auth=f64cd0a70dc86f5895feddb9b5503ecbbd47c221c78d057e3e925856c4dbccdb&width=1200&height=675&smart=true&quality=80" 
     },
     "Salchipapas con queso": {
         "ingredientes": [
@@ -53,7 +53,7 @@ recetas = {
             "4. Puedes añadir salsas como ketchup o mayonesa.",
             "5. ¡Listo para disfrutar!"
         ],
-        "foto": "imagenes/salchipapas.jpg"  # Asegúrate de que la imagen esté en la carpeta correcta
+        "foto": "https://i.ytimg.com/vi/vlo3cRtybbQ/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLA6w8Ydb4SYliuFUYLWyTaIGcz6sA"  
     },
     "Tacos de pollo": {
         "ingredientes": [
@@ -70,7 +70,7 @@ recetas = {
             "3. Agrega cilantro, cebolla picada y un chorrito de limón.",
             "4. Añade salsa al gusto y disfruta."
         ],
-        "foto": "imagenes/tacos.jpg"  # Asegúrate de que la imagen esté en la carpeta correcta
+        "foto": "https://cocinaconmichela.com/wp-content/uploads/2023/10/THUMBNAIL-OCT-5-25-600-x-600-500x500.png"  
     },
     "Ensalada César": {
         "ingredientes": [
@@ -87,13 +87,12 @@ recetas = {
             "4. Agrega el aderezo César y mezcla bien.",
             "5. Sirve y disfruta."
         ],
-        "foto": "imagenes/ensalada_cesar.jpg"  # Asegúrate de que la imagen esté en la carpeta correcta
-    }
+        "foto": "https://www.pequerecetas.com/wp-content/uploads/2017/09/ensalada-cesar.jpg"
 }
 
 # Interfaz de usuario
-st.title("App de Recetas de Cocina")
-st.write("¡Bienvenido! Elige una receta y te mostramos los ingredientes, los pasos y una foto.")
+st.title("App de Recetas de Cocina ")
+st.write("¡Bienvenido! Elige una receta y te mostramos los ingredientes, los pasos y una foto. por Jeferson Orley Restrepo Bedoya")
 
 # Selección de receta
 receta_seleccionada = st.selectbox("¿Qué quieres cocinar?", list(recetas.keys()))
