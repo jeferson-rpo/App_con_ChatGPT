@@ -6,13 +6,22 @@ import io
 
 # Función para calcular el PAPA
 def calcular_papa(df):
+    # Verificar si hay datos en el DataFrame
+    if df.empty:
+        return 0.0
+
+    # Calcular el total de créditos y la suma ponderada de calificación por créditos
     total_creditos = df["Créditos"].sum()
+    if total_creditos == 0:
+        return 0.0
+
     suma_ponderada = (df["Calificación"] * df["Créditos"]).sum()
     papa = suma_ponderada / total_creditos
     return papa
 
 # Función para calcular el PAPA por tipología de asignatura
 def calcular_papa_por_tipologia(df, tipologia):
+    # Filtrar las asignaturas por tipología
     df_tipologia = df[df["Tipología"] == tipologia]
     return calcular_papa(df_tipologia)
 
@@ -58,10 +67,12 @@ for i in range(n_materias):
     credito = st.number_input(f"Créditos de {materia}", min_value=1, max_value=6, value=3, key=f"credito_{i}")
     tipologia = st.selectbox(f"Tipología de {materia}", options=["Teórica", "Práctica", "Optativa"], key=f"tipologia_{i}")
     
-    materias.append(materia)
-    calificaciones.append(calificacion)
-    creditos.append(credito)
-    tipologias.append(tipologia)
+    # Validaciones antes de agregar los datos
+    if calificacion > 0 and credito > 0:
+        materias.append(materia)
+        calificaciones.append(calificacion)
+        creditos.append(credito)
+        tipologias.append(tipologia)
 
 # Almacenar los datos en el DataFrame
 df = pd.DataFrame({
@@ -73,36 +84,39 @@ df = pd.DataFrame({
 
 # Botón para calcular el PAPA global y por tipología
 if st.button("Calcular PAPA"):
-    # Calcular PAPA global
-    papa_global = calcular_papa(df)
-    st.write(f"**PAPA Global:** {papa_global:.2f}")
-    
-    # Calcular PAPA por tipología
-    papa_por_tipologia = {}
-    for tipologia in df["Tipología"].unique():
-        papa_tipologia = calcular_papa_por_tipologia(df, tipologia)
-        papa_por_tipologia[tipologia] = papa_tipologia
-        st.write(f"**PAPA para asignaturas de tipo {tipologia}:** {papa_tipologia:.2f}")
-    
-    # Mostrar los datos ingresados en una tabla
-    st.subheader("Datos Ingresados")
-    st.write(df)
+    if df.empty:
+        st.error("No hay datos para calcular el PAPA. Por favor, ingrese al menos una materia.")
+    else:
+        # Calcular PAPA global
+        papa_global = calcular_papa(df)
+        st.write(f"**PAPA Global:** {papa_global:.2f}")
+        
+        # Calcular PAPA por tipología
+        papa_por_tipologia = {}
+        for tipologia in df["Tipología"].unique():
+            papa_tipologia = calcular_papa_por_tipologia(df, tipologia)
+            papa_por_tipologia[tipologia] = papa_tipologia
+            st.write(f"**PAPA para asignaturas de tipo {tipologia}:** {papa_tipologia:.2f}")
+        
+        # Mostrar los datos ingresados en una tabla
+        st.subheader("Datos Ingresados")
+        st.write(df)
 
-    # Exportar a CSV
-    buf, resultados_buf = exportar_a_csv(df, papa_global, papa_por_tipologia)
-    
-    # Crear un botón para descargar el archivo CSV
-    st.download_button(
-        label="Descargar los resultados en CSV",
-        data=buf.getvalue(),
-        file_name="datos_asignaturas.csv",
-        mime="text/csv"
-    )
-    
-    # Descargar los resultados del PAPA
-    st.download_button(
-        label="Descargar los resultados del PAPA en CSV",
-        data=resultados_buf.getvalue(),
-        file_name="resultados_papa.csv",
-        mime="text/csv"
-    )
+        # Exportar a CSV
+        buf, resultados_buf = exportar_a_csv(df, papa_global, papa_por_tipologia)
+        
+        # Crear un botón para descargar el archivo CSV
+        st.download_button(
+            label="Descargar los resultados en CSV",
+            data=buf.getvalue(),
+            file_name="datos_asignaturas.csv",
+            mime="text/csv"
+        )
+        
+        # Descargar los resultados del PAPA
+        st.download_button(
+            label="Descargar los resultados del PAPA en CSV",
+            data=resultados_buf.getvalue(),
+            file_name="resultados_papa.csv",
+            mime="text/csv"
+        )
