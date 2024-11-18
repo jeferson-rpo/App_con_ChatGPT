@@ -44,7 +44,7 @@ def generar_reporte_mensual(fecha_elegida):
     return df_mes, gastos_mensuales, ingresos_mensuales, diferencia_mensual
 
 # Interfaz de usuario en Streamlit
-st.title("Registro de Finanzas Personales")
+st.title("Registro de Finanzas Personales por Jeferson Orley Restrepo Bedoya")
 
 # Inicializar el DataFrame vacío si no existe en session_state
 inicializar_datos()
