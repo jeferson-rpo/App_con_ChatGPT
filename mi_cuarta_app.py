@@ -46,7 +46,7 @@ def exportar_a_csv(df, papa_global, papa_por_tipologia):
     return buf, resultados_buf
 
 # Interfaz de usuario en Streamlit
-st.title("Cálculo del PAPA - Promedio Ponderado Acumulado")
+st.title("Cálculo del PAPA - Promedio Ponderado Acumulado por Jeferson Orley Restrepo Bedoya")
 st.write("Ingrese los datos de las asignaturas para calcular su PAPA global y por tipología.")
 
 # Crear un DataFrame vacío para almacenar los datos
@@ -65,7 +65,7 @@ for i in range(n_materias):
     materia = st.text_input(f"Nombre de la materia {i+1}", key=f"materia_{i}")
     calificacion = st.number_input(f"Calificación de {materia} (0-10)", min_value=0.0, max_value=10.0, format="%.1f", key=f"calificacion_{i}")
     credito = st.number_input(f"Créditos de {materia}", min_value=1, max_value=6, value=3, key=f"credito_{i}")
-    tipologia = st.selectbox(f"Tipología de {materia}", options=["Teórica", "Práctica", "Optativa"], key=f"tipologia_{i}")
+    tipologia = st.selectbox(f"Tipología de {materia}", options=["Libre eleccion", "Disciplinar optaviva", "Disciplinar Obligatoria","Fundamental Obligatoria","Fundamental Obligatoria"], key=f"tipologia_{i}")
     
     # Validaciones antes de agregar los datos
     if calificacion > 0 and credito > 0:
