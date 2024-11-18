@@ -103,14 +103,21 @@ receta = recetas[receta_seleccionada]
 
 # Ingredientes
 st.subheader("Ingredientes:")
+ingredientes_html = ""
 for ingrediente in receta["ingredientes"]:
-    st.write(f"- {ingrediente}")
+    ingredientes_html += f"<li style='color: #FF6347;'>{ingrediente}</li>"
+
+st.markdown(f"<ul>{ingredientes_html}</ul>", unsafe_allow_html=True)
 
 # Pasos
 st.subheader("Paso a paso:")
+pasos_html = ""
 for paso in receta["pasos"]:
-    st.write(paso)
+    pasos_html += f"<li style='color: #4682B4;'>{paso}</li>"
+
+st.markdown(f"<ul>{pasos_html}</ul>", unsafe_allow_html=True)
 
 # Foto
 st.subheader("Foto de la receta:")
 st.image(receta["foto"], use_column_width=True)
+
