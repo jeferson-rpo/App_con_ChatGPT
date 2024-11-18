@@ -123,7 +123,7 @@ def terabytes_a_petabytes(tb):
     return tb / 1024
 
 # Interfaz de usuario en Streamlit
-st.title("Conversor Universal")
+st.title("Conversor Universal por Jeferson Orley Restrepo Bedoya")
 st.write("Selecciona una categoría y luego el tipo de conversión que deseas realizar.")
 
 # Selección de categoría
