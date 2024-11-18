@@ -72,4 +72,45 @@ recetas = {
         ],
         "foto": "https://cocinaconmichela.com/wp-content/uploads/2023/10/THUMBNAIL-OCT-5-25-600-x-600-500x500.png"  
     },
-    "Ens
+    "Ensalada César": {
+        "ingredientes": [
+            "Lechuga romana",
+            "Pechuga de pollo (200g)",
+            "Crutones",
+            "Queso parmesano",
+            "Aderezo César"
+        ],
+        "pasos": [
+            "1. Cocina la pechuga de pollo y córtala en tiras.",
+            "2. Lava y corta la lechuga en trozos.",
+            "3. Mezcla la lechuga, el pollo, los crutones y el queso.",
+            "4. Agrega el aderezo César y mezcla bien.",
+            "5. Sirve y disfruta."
+        ],
+        "foto": "https://www.pequerecetas.com/wp-content/uploads/2017/09/ensalada-cesar.jpg"
+    }
+}
+
+# Interfaz de usuario
+st.title("App de Recetas de Cocina ")
+st.write("¡Bienvenido! Elige una receta y te mostramos los ingredientes, los pasos y una foto. por Jeferson Orley Restrepo Bedoya")
+
+# Selección de receta
+receta_seleccionada = st.selectbox("¿Qué quieres cocinar?", list(recetas.keys()))
+
+# Mostrar ingredientes, pasos y foto
+receta = recetas[receta_seleccionada]
+
+# Ingredientes
+st.subheader("Ingredientes:")
+for ingrediente in receta["ingredientes"]:
+    st.write(f"- {ingrediente}")
+
+# Pasos
+st.subheader("Paso a paso:")
+for paso in receta["pasos"]:
+    st.write(paso)
+
+# Foto
+st.subheader("Foto de la receta:")
+st.image(receta["foto"], use_column_width=True)
