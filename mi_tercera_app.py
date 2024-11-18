@@ -68,8 +68,8 @@ st.write(st.session_state.df)
 
 # Selección de la fecha para los reportes
 st.header("Generar Reportes")
-fecha_seleccionada = st.date_input("Selecciona la Fecha", datetime.date.today())
-fecha_elegida = pd.to_datetime(fecha_seleccionada)
+fecha_seleccionada = st.date_input("Selecciona la Fecha para el reporte", datetime.date.today())
+fecha_elegida = pd.to_datetime(fecha_seleccionada)  # Convierte la fecha seleccionada a datetime
 
 # Reporte Semanal
 st.subheader("Reporte Semanal")
@@ -96,4 +96,5 @@ st.write(df_mensual)  # Muestra las transacciones del mes en una tabla
 st.write(f"Total de Ingresos Mensuales: ${ingresos_mensuales:.2f}")
 st.write(f"Total de Gastos Mensuales: ${gastos_mensuales:.2f}")
 st.write(f"Diferencia Mensual (Ingresos - Gastos): ${diferencia_mensual:.2f}")
+
 
