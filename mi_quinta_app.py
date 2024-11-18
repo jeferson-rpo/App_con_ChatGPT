@@ -103,21 +103,24 @@ receta = recetas[receta_seleccionada]
 
 # Ingredientes
 st.subheader("Ingredientes:")
-ingredientes_html = ""
+ingredientes_html = "<ul style='list-style-type: none; padding: 0;'>"
 for ingrediente in receta["ingredientes"]:
-    ingredientes_html += f"<li style='color: #FF6347;'>{ingrediente}</li>"
+    ingredientes_html += f"<li style='background-color: #FF6347; color: white; padding: 8px; margin: 2px; border-radius: 5px; border: 1px solid #D94E41;'>{ingrediente}</li>"
 
-st.markdown(f"<ul>{ingredientes_html}</ul>", unsafe_allow_html=True)
+ingredientes_html += "</ul>"
+st.markdown(ingredientes_html, unsafe_allow_html=True)
 
 # Pasos
 st.subheader("Paso a paso:")
-pasos_html = ""
+pasos_html = "<ul style='list-style-type: none; padding: 0;'>"
 for paso in receta["pasos"]:
-    pasos_html += f"<li style='color: #4682B4;'>{paso}</li>"
+    pasos_html += f"<li style='background-color: #4682B4; color: white; padding: 8px; margin: 2px; border-radius: 5px; border: 1px solid #3A6B8B;'>{paso}</li>"
 
-st.markdown(f"<ul>{pasos_html}</ul>", unsafe_allow_html=True)
+pasos_html += "</ul>"
+st.markdown(pasos_html, unsafe_allow_html=True)
 
 # Foto
 st.subheader("Foto de la receta:")
 st.image(receta["foto"], use_column_width=True)
+
 
