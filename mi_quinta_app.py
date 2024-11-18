@@ -19,7 +19,7 @@ recetas = {
             "4. Coloca la carne en el pan, agrega el queso, lechuga, tomate y salsas.",
             "5. ¡Disfruta tu hamburguesa!"
         ],
-        "foto": "imagenes/hamburguesa.jpg"  # Asegúrate de que la imagen esté en la carpeta correcta
+        "foto": "https://www.portafolio.co/files/article_new_multimedia/uploads/2022/04/12/6255e2e41db6c.jpeg"  # Asegúrate de que la imagen esté en la carpeta correcta
     },
     "Sancocho": {
         "ingredientes": [
