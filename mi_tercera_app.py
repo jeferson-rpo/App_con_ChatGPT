@@ -1,114 +1,90 @@
 # Este codigo fue realizado por chatgpt
-import streamlit as st
-import pandas as pd
-import datetime
+import tkinter as tk
+from tkinter import ttk
+from tkcalendar import Calendar
+import csv
 
-# Función para calcular la diferencia entre lo presupuestado y lo real
-def calcular_diferencia(presupuestado, real):
-    return presupuestado - real
+# Archivo para guardar los datos
+archivo_finanzas = "finanzas.csv"
 
-# Función para cargar o crear un DataFrame para los registros de finanzas
-def cargar_datos():
+# Función para inicializar el archivo CSV si no existe
+def inicializar_archivo():
     try:
-        df = pd.read_csv("finanzas.csv")
-    except FileNotFoundError:
-        # Si el archivo no existe, crear uno nuevo
-        df = pd.DataFrame(columns=["Fecha", "Tipo", "Categoría", "Monto", "Descripción"])
-    return df
+        with open(archivo_finanzas, "x", newline="") as archivo:
+            escritor = csv.writer(archivo)
+            escritor.writerow(["Fecha", "Tipo", "Monto"])
+    except FileExistsError:
+        pass  # El archivo ya existe, no hacemos nada
 
-# Función para guardar los datos en un archivo CSV
-def guardar_datos(df):
-    df.to_csv("finanzas.csv", index=False)
+# Función para agregar una transacción
+def agregar_transaccion():
+    fecha = calendario.get_date()
+    tipo = tipo_transaccion.get()
+    monto = entrada_monto.get()
+    
+    if not monto.isdigit():
+        label_estado.config(text="Por favor, ingresa un monto válido.", fg="red")
+        return
+    
+    with open(archivo_finanzas, "a", newline="") as archivo:
+        escritor = csv.writer(archivo)
+        escritor.writerow([fecha, tipo, monto])
+    
+    label_estado.config(text="Transacción agregada correctamente.", fg="green")
+    actualizar_lista_transacciones()
+    entrada_monto.delete(0, tk.END)
 
-# Función para registrar ingresos y gastos
-def registrar_transaccion(df, tipo, categoria, monto, descripcion):
-    fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    nueva_fila = pd.DataFrame({"Fecha": [fecha], "Tipo": [tipo], "Categoría": [categoria],
-                               "Monto": [monto], "Descripción": [descripcion]})
-    df = pd.concat([df, nueva_fila], ignore_index=True)
-    guardar_datos(df)
-    return df
+# Función para actualizar la lista de transacciones
+def actualizar_lista_transacciones():
+    for item in tabla.get_children():
+        tabla.delete(item)
+    
+    with open(archivo_finanzas, "r") as archivo:
+        lector = csv.reader(archivo)
+        next(lector)  # Saltar encabezado
+        for fila in lector:
+            tabla.insert("", tk.END, values=fila)
 
-# Interfaz de usuario en Streamlit
-st.title("Registro de Finanzas Personales")
+# Configuración inicial
+inicializar_archivo()
 
-# Cargar los datos de las finanzas
-df = cargar_datos()
+# Crear ventana principal
+ventana = tk.Tk()
+ventana.title("Registro de Finanzas Personales")
+ventana.geometry("600x500")
 
-# Registrar Ingresos o Gastos
-st.header("Registrar Transacción")
-tipo_transaccion = st.selectbox("Tipo de Transacción:", ["Ingreso", "Gasto"])
-categoria_transaccion = st.text_input("Categoría (Ej. Alimentación, Renta, Entretenimiento):")
-monto_transaccion = st.number_input("Monto:", min_value=0.0, format="%.2f")
-descripcion_transaccion = st.text_area("Descripción:")
+# Calendario para seleccionar fecha
+calendario = Calendar(ventana, selectmode='day', date_pattern='dd/mm/yyyy')
+calendario.pack(pady=10)
 
-if st.button("Registrar Transacción"):
-    if categoria_transaccion and monto_transaccion > 0:
-        df = registrar_transaccion(df, tipo_transaccion, categoria_transaccion, monto_transaccion, descripcion_transaccion)
-        st.success(f"Transacción de {tipo_transaccion} registrada con éxito!")
-    else:
-        st.error("Por favor, completa todos los campos correctamente.")
+# Tipo de transacción
+tipo_transaccion = ttk.Combobox(ventana, values=["Ingreso", "Gasto"])
+tipo_transaccion.set("Selecciona tipo")
+tipo_transaccion.pack(pady=5)
 
-# Mostrar los registros de ingresos y gastos
-st.header("Historial de Finanzas")
-st.write(df)
+# Entrada para el monto
+entrada_monto = ttk.Entry(ventana)
+entrada_monto.pack(pady=5)
+entrada_monto.insert(0, "Ingresa el monto")
 
-# Establecer Presupuestos Mensuales y Metas de Ahorro
-st.header("Presupuesto y Meta de Ahorro")
-presupuesto_categoria = st.text_input("Categoría del Presupuesto (Ej. Alimentación, Renta):")
-presupuesto_monto = st.number_input("Monto del Presupuesto:", min_value=0.0, format="%.2f")
-meta_ahorro = st.number_input("Meta de Ahorro Mensual:", min_value=0.0, format="%.2f")
+# Botón para agregar la transacción
+btn_agregar = ttk.Button(ventana, text="Agregar Transacción", command=agregar_transaccion)
+btn_agregar.pack(pady=10)
 
-if st.button("Guardar Presupuesto y Meta"):
-    if presupuesto_categoria and presupuesto_monto > 0:
-        st.success(f"Presupuesto para {presupuesto_categoria} de {presupuesto_monto} guardado correctamente.")
-    else:
-        st.error("Por favor, ingresa una categoría y monto válidos.")
+# Estado de las operaciones
+label_estado = ttk.Label(ventana, text="")
+label_estado.pack(pady=5)
 
-# Reportes Semanales y Mensuales
-st.header("Reportes de Finanzas")
-# Filtrar datos por fecha
-fecha_hoy = datetime.datetime.now()
-semana_inicio = fecha_hoy - pd.DateOffset(days=fecha_hoy.weekday())  # Lunes de la semana actual
-mes_inicio = fecha_hoy.replace(day=1)  # Primer día del mes
+# Tabla para mostrar transacciones
+tabla = ttk.Treeview(ventana, columns=("Fecha", "Tipo", "Monto"), show="headings")
+tabla.heading("Fecha", text="Fecha")
+tabla.heading("Tipo", text="Tipo")
+tabla.heading("Monto", text="Monto")
+tabla.pack(pady=20, fill=tk.BOTH, expand=True)
 
-# Filtrar los registros de la semana
-df_semana = df[pd.to_datetime(df["Fecha"]) >= semana_inicio]
-df_mes = df[pd.to_datetime(df["Fecha"]) >= mes_inicio]
+# Cargar las transacciones existentes
+actualizar_lista_transacciones()
 
-# Mostrar reportes de la semana
-st.subheader("Reporte Semanal")
-gastos_semanales = df_semana[df_semana["Tipo"] == "Gasto"]["Monto"].sum()
-ingresos_semanales = df_semana[df_semana["Tipo"] == "Ingreso"]["Monto"].sum()
-diferencia_semanal = gastos_semanales - ingresos_semanales
+# Ejecutar la ventana principal
+ventana.mainloop()
 
-st.write(f"Total de Ingresos Semanales: ${ingresos_semanales:.2f}")
-st.write(f"Total de Gastos Semanales: ${gastos_semanales:.2f}")
-st.write(f"Diferencia Semanal (Ingresos - Gastos): ${diferencia_semanal:.2f}")
-
-# Mostrar reportes del mes
-st.subheader("Reporte Mensual")
-gastos_mensuales = df_mes[df_mes["Tipo"] == "Gasto"]["Monto"].sum()
-ingresos_mensuales = df_mes[df_mes["Tipo"] == "Ingreso"]["Monto"].sum()
-diferencia_mensual = gastos_mensuales - ingresos_mensuales
-
-st.write(f"Total de Ingresos Mensuales: ${ingresos_mensuales:.2f}")
-st.write(f"Total de Gastos Mensuales: ${gastos_mensuales:.2f}")
-st.write(f"Diferencia Mensual (Ingresos - Gastos): ${diferencia_mensual:.2f}")
-
-# Comparar lo presupuestado con lo real
-if presupuesto_categoria and presupuesto_monto > 0:
-    st.write(f"Presupuesto para {presupuesto_categoria}: ${presupuesto_monto:.2f}")
-    diferencia_presupuesto = presupuesto_monto - gastos_mensuales
-    st.write(f"Diferencia entre lo presupuestado y lo real: ${diferencia_presupuesto:.2f}")
-
-# Meta de ahorro
-st.subheader("Meta de Ahorro")
-if meta_ahorro > 0:
-    ahorro_real = ingresos_mensuales - gastos_mensuales
-    st.write(f"Meta de Ahorro Mensual: ${meta_ahorro:.2f}")
-    st.write(f"Ahorro Real Mensual: ${ahorro_real:.2f}")
-    if ahorro_real >= meta_ahorro:
-        st.success("¡Felicidades! Has alcanzado tu meta de ahorro mensual.")
-    else:
-        st.warning(f"Te falta ${meta_ahorro - ahorro_real:.2f} para alcanzar tu meta de ahorro.")
