@@ -1,90 +1,42 @@
 # Este codigo fue realizado por chatgpt
-import tkinter as tk
-from tkinter import ttk
-from tkcalendar import Calendar
-import csv
 
-# Archivo para guardar los datos
-archivo_finanzas = "finanzas.csv"
+import streamlit as st
+import pandas as pd
 
-# Función para inicializar el archivo CSV si no existe
-def inicializar_archivo():
-    try:
-        with open(archivo_finanzas, "x", newline="") as archivo:
-            escritor = csv.writer(archivo)
-            escritor.writerow(["Fecha", "Tipo", "Monto"])
-    except FileExistsError:
-        pass  # El archivo ya existe, no hacemos nada
+# Datos en memoria
+transacciones = []
 
-# Función para agregar una transacción
-def agregar_transaccion():
-    fecha = calendario.get_date()
-    tipo = tipo_transaccion.get()
-    monto = entrada_monto.get()
-    
-    if not monto.isdigit():
-        label_estado.config(text="Por favor, ingresa un monto válido.", fg="red")
-        return
-    
-    with open(archivo_finanzas, "a", newline="") as archivo:
-        escritor = csv.writer(archivo)
-        escritor.writerow([fecha, tipo, monto])
-    
-    label_estado.config(text="Transacción agregada correctamente.", fg="green")
-    actualizar_lista_transacciones()
-    entrada_monto.delete(0, tk.END)
+# Título de la aplicación
+st.title("Registro de Finanzas Personales")
 
-# Función para actualizar la lista de transacciones
-def actualizar_lista_transacciones():
-    for item in tabla.get_children():
-        tabla.delete(item)
-    
-    with open(archivo_finanzas, "r") as archivo:
-        lector = csv.reader(archivo)
-        next(lector)  # Saltar encabezado
-        for fila in lector:
-            tabla.insert("", tk.END, values=fila)
+# Selección de fecha
+fecha = st.date_input("Selecciona una fecha")
 
-# Configuración inicial
-inicializar_archivo()
+# Selección de tipo de transacción
+tipo = st.selectbox("Selecciona el tipo de transacción", ["Ingreso", "Gasto"])
 
-# Crear ventana principal
-ventana = tk.Tk()
-ventana.title("Registro de Finanzas Personales")
-ventana.geometry("600x500")
+# Entrada de monto
+monto = st.number_input("Ingresa el monto", min_value=0.0, format="%.2f")
 
-# Calendario para seleccionar fecha
-calendario = Calendar(ventana, selectmode='day', date_pattern='dd/mm/yyyy')
-calendario.pack(pady=10)
+# Botón para agregar transacción
+if st.button("Agregar Transacción"):
+    nueva_transaccion = {"Fecha": fecha, "Tipo": tipo, "Monto": monto}
+    transacciones.append(nueva_transaccion)
+    st.success("Transacción agregada correctamente.")
 
-# Tipo de transacción
-tipo_transaccion = ttk.Combobox(ventana, values=["Ingreso", "Gasto"])
-tipo_transaccion.set("Selecciona tipo")
-tipo_transaccion.pack(pady=5)
+# Mostrar las transacciones registradas
+if transacciones:
+    st.subheader("Transacciones Registradas")
+    df = pd.DataFrame(transacciones)
+    st.dataframe(df)
 
-# Entrada para el monto
-entrada_monto = ttk.Entry(ventana)
-entrada_monto.pack(pady=5)
-entrada_monto.insert(0, "Ingresa el monto")
-
-# Botón para agregar la transacción
-btn_agregar = ttk.Button(ventana, text="Agregar Transacción", command=agregar_transaccion)
-btn_agregar.pack(pady=10)
-
-# Estado de las operaciones
-label_estado = ttk.Label(ventana, text="")
-label_estado.pack(pady=5)
-
-# Tabla para mostrar transacciones
-tabla = ttk.Treeview(ventana, columns=("Fecha", "Tipo", "Monto"), show="headings")
-tabla.heading("Fecha", text="Fecha")
-tabla.heading("Tipo", text="Tipo")
-tabla.heading("Monto", text="Monto")
-tabla.pack(pady=20, fill=tk.BOTH, expand=True)
-
-# Cargar las transacciones existentes
-actualizar_lista_transacciones()
-
-# Ejecutar la ventana principal
-ventana.mainloop()
+# Reporte semanal y mensual
+if transacciones:
+    st.subheader("Reporte de Diferencias")
+    df = pd.DataFrame(transacciones)
+    ingreso_total = df[df["Tipo"] == "Ingreso"]["Monto"].sum()
+    gasto_total = df[df["Tipo"] == "Gasto"]["Monto"].sum()
+    st.write(f"**Total Ingresos:** ${ingreso_total:.2f}")
+    st.write(f"**Total Gastos:** ${gasto_total:.2f}")
+    st.write(f"**Balance:** ${ingreso_total - gasto_total:.2f}")
 
