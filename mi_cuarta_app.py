@@ -65,7 +65,7 @@ for i in range(n_materias):
     materia = st.text_input(f"Nombre de la materia {i+1}", key=f"materia_{i}")
     calificacion = st.number_input(f"Calificación de {materia} (0-10)", min_value=0.0, max_value=10.0, format="%.1f", key=f"calificacion_{i}")
     credito = st.number_input(f"Créditos de {materia}", min_value=1, max_value=6, value=3, key=f"credito_{i}")
-    tipologia = st.selectbox(f"Tipología de {materia}", options=["Libre eleccion", "Disciplinar optaviva", "Disciplinar Obligatoria","Fundamental Obligatoria","Fundamental Obligatoria"], key=f"tipologia_{i}")
+    tipologia = st.selectbox(f"Tipología de {materia}", options=["Libre eleccion", "Disciplinar optaviva", "Disciplinar obligatoria","Fundamental obligatoria","Fundamental optativa"], key=f"tipologia_{i}")
     
     # Validaciones antes de agregar los datos
     if calificacion > 0 and credito > 0:
