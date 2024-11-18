@@ -9,8 +9,9 @@ def inicializar_datos():
         st.session_state.df = pd.DataFrame(columns=["Fecha", "Tipo", "Categoría", "Monto", "Descripción"])
 
 # Función para registrar ingresos y gastos
-def registrar_transaccion(tipo, categoria, monto, descripcion):
-    fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def registrar_transaccion(tipo, categoria, monto, descripcion, fecha):
+    # Asegurarse de que la fecha sea del tipo correcto
+    fecha = pd.to_datetime(fecha)
     nueva_fila = pd.DataFrame({"Fecha": [fecha], "Tipo": [tipo], "Categoría": [categoria],
                                "Monto": [monto], "Descripción": [descripcion]})
     st.session_state.df = pd.concat([st.session_state.df, nueva_fila], ignore_index=True)
@@ -55,9 +56,12 @@ categoria_transaccion = st.text_input("Categoría (Ej. Alimentación, Renta, Ent
 monto_transaccion = st.number_input("Monto:", min_value=0.0, format="%.2f")
 descripcion_transaccion = st.text_area("Descripción:")
 
+# Nueva opción para ingresar la fecha de la transacción
+fecha_transaccion = st.date_input("Fecha de la Transacción", datetime.date.today())
+
 if st.button("Registrar Transacción"):
     if categoria_transaccion and monto_transaccion > 0:
-        registrar_transaccion(tipo_transaccion, categoria_transaccion, monto_transaccion, descripcion_transaccion)
+        registrar_transaccion(tipo_transaccion, categoria_transaccion, monto_transaccion, descripcion_transaccion, fecha_transaccion)
         st.success(f"Transacción de {tipo_transaccion} registrada con éxito!")
     else:
         st.error("Por favor, completa todos los campos correctamente.")
