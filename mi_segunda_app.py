@@ -1,3 +1,4 @@
+# El siguiente codigo fue realizado por chatgpt
 import streamlit as st
 
 # Funciones para las conversiones
