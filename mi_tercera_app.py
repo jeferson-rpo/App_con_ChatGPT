@@ -19,6 +19,10 @@ def registrar_transaccion(df, tipo, categoria, monto, descripcion):
 # Función para generar el reporte semanal
 def generar_reporte_semanal(df, fecha_elegida):
     semana_inicio = fecha_elegida - pd.DateOffset(days=fecha_elegida.weekday())  # Lunes de la semana seleccionada
+    
+    # Convertir la columna "Fecha" a tipo datetime para evitar errores de comparación
+    df["Fecha"] = pd.to_datetime(df["Fecha"])
+    
     # Filtrar los registros de la semana
     df_semana = df[df["Fecha"] >= semana_inicio]
     gastos_semanales = df_semana[df_semana["Tipo"] == "Gasto"]["Monto"].sum()
@@ -29,6 +33,10 @@ def generar_reporte_semanal(df, fecha_elegida):
 # Función para generar el reporte mensual
 def generar_reporte_mensual(df, fecha_elegida):
     mes_inicio = fecha_elegida.replace(day=1)  # Primer día del mes
+    
+    # Convertir la columna "Fecha" a tipo datetime para evitar errores de comparación
+    df["Fecha"] = pd.to_datetime(df["Fecha"])
+    
     df_mes = df[df["Fecha"] >= mes_inicio]
     gastos_mensuales = df_mes[df_mes["Tipo"] == "Gasto"]["Monto"].sum()
     ingresos_mensuales = df_mes[df_mes["Tipo"] == "Ingreso"]["Monto"].sum()
@@ -88,5 +96,6 @@ st.write(df_mensual)  # Muestra las transacciones del mes en una tabla
 st.write(f"Total de Ingresos Mensuales: ${ingresos_mensuales:.2f}")
 st.write(f"Total de Gastos Mensuales: ${gastos_mensuales:.2f}")
 st.write(f"Diferencia Mensual (Ingresos - Gastos): ${diferencia_mensual:.2f}")
+
 
 
