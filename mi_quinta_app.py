@@ -98,60 +98,30 @@ st.write("¡Bienvenido! Elige una receta y te mostramos los ingredientes, los pa
 # Selección de receta
 receta_seleccionada = st.selectbox("¿Qué quieres cocinar?", list(recetas.keys()))
 
-# Definir los estilos por receta
-estilos = {
-    "Hamburguesa": {
-        "color": "#FF6347",  # Rojo
-        "border_color": "#D94E41",
-        "foto_border": "5px solid #D94E41"
-    },
-    "Sancocho": {
-        "color": "#4682B4",  # Azul
-        "border_color": "#3A6B8B",
-        "foto_border": "5px solid #3A6B8B"
-    },
-    "Salchipapas con queso": {
-        "color": "#FFD700",  # Amarillo
-        "border_color": "#E6B800",
-        "foto_border": "5px solid #E6B800"
-    },
-    "Tacos de pollo": {
-        "color": "#32CD32",  # Verde
-        "border_color": "#2E8B57",
-        "foto_border": "5px solid #2E8B57"
-    },
-    "Ensalada César": {
-        "color": "#8B4513",  # Marrón
-        "border_color": "#A0522D",
-        "foto_border": "5px solid #A0522D"
-    }
-}
+# Mostrar ingredientes, pasos y foto
+receta = recetas[receta_seleccionada]
 
-# Obtener el estilo basado en la receta seleccionada
-estilo = estilos[receta_seleccionada]
-
-# Mostrar los ingredientes con el estilo de la receta
+# Ingredientes
 st.subheader("Ingredientes:")
-ingredientes_html = f"<ul style='list-style-type: none; padding: 0; border: {estilo['foto_border']}'>"
+ingredientes_html = "<ul style='list-style-type: none; padding: 0;'>"
 for ingrediente in receta["ingredientes"]:
-    ingredientes_html += f"<li style='background-color: {estilo['color']}; color: white; padding: 8px; margin: 2px; border-radius: 5px; border: 1px solid {estilo['border_color']};'>{ingrediente}</li>"
+    ingredientes_html += f"<li style='background-color: #FF6347; color: white; padding: 8px; margin: 2px; border-radius: 5px; border: 1px solid #D94E41;'>{ingrediente}</li>"
 
 ingredientes_html += "</ul>"
 st.markdown(ingredientes_html, unsafe_allow_html=True)
 
-# Mostrar los pasos con el estilo de la receta
+# Pasos
 st.subheader("Paso a paso:")
-pasos_html = f"<ul style='list-style-type: none; padding: 0;'>"
+pasos_html = "<ul style='list-style-type: none; padding: 0;'>"
 for paso in receta["pasos"]:
-    pasos_html += f"<li style='background-color: {estilo['color']}; color: white; padding: 8px; margin: 2px; border-radius: 5px; border: 1px solid {estilo['border_color']};'>{paso}</li>"
+    pasos_html += f"<li style='background-color: #4682B4; color: white; padding: 8px; margin: 2px; border-radius: 5px; border: 1px solid #3A6B8B;'>{paso}</li>"
 
 pasos_html += "</ul>"
 st.markdown(pasos_html, unsafe_allow_html=True)
 
-# Foto con borde de estilo
+# Foto
 st.subheader("Foto de la receta:")
-st.markdown(f"<div style='border: {estilo['foto_border']}; padding: 10px;'>", unsafe_allow_html=True)
 st.image(receta["foto"], use_column_width=True)
-st.markdown("</div>", unsafe_allow_html=True)
+
 
 
