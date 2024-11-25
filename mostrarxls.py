@@ -53,9 +53,9 @@ try:
     st.write("Datos organizados:")
     st.dataframe(df)
 
-    # Guardar los datos en un archivo Excel
-    nombre_archivo_excel = "productos_organizados.xls"
-    df.to_excel(nombre_archivo_excel, index=False)
+    # Guardar los datos en un archivo Excel en formato .xlsx
+    nombre_archivo_excel = "productos_organizados.xlsx"
+    df.to_excel(nombre_archivo_excel, index=False, engine="openpyxl")
 
     # Descargar el archivo Excel
     with open(nombre_archivo_excel, "rb") as file:
@@ -63,11 +63,10 @@ try:
             label="Descargar archivo organizado en Excel",
             data=file,
             file_name=nombre_archivo_excel,
-            mime="application/vnd.ms-excel",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
 except FileNotFoundError:
     st.error(f"El archivo '{nombre_archivo_csv}' no se encontró. Asegúrate de que esté en el directorio actual.")
 except Exception as e:
     st.error(f"Error al procesar el archivo: {e}")
-
