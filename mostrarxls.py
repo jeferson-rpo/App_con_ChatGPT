@@ -1,3 +1,6 @@
+#Este codigo lo realize con chatgpt
+
+#librerias necesarias 
 import pandas as pd
 import re
 import streamlit as st
