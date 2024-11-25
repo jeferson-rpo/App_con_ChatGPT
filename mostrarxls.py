@@ -32,18 +32,7 @@ def extraer_info(linea):
 
 # Streamlit: configuración inicial
 st.title("Organizador de Datos con Regex Mejorado")
-st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares Por Jeferson Orley Restrepo Bedoya.")
-
-# Leer y procesar el archivo CSV
-nombre_archivo_csv = "regex_productos.csv"
-
-try:
-    # Leer el archivo
-    with open(nombre_archivo_csv, "r") as file:
-        lineas = file.readlines()
-
-    # Procesar cada
-")
+st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares.")
 
 # Leer y procesar el archivo CSV
 nombre_archivo_csv = "regex_productos.csv"
@@ -57,7 +46,7 @@ try:
     datos = [extraer_info(linea) for linea in lineas]
 
     # Crear un DataFrame
-    columnas = ["Número de serie", "Nombre del producto", "Valor", "Fecha de compra", "Información de contacto"]
+    columnas = ["Número de serie", "Nombre del producto", "Valor", "Fecha de compra", "Correo electrónico", "Teléfono"]
     df = pd.DataFrame(datos, columns=columnas)
 
     # Mostrar los datos organizados
@@ -81,3 +70,4 @@ except FileNotFoundError:
     st.error(f"El archivo '{nombre_archivo_csv}' no se encontró. Asegúrate de que esté en el directorio actual.")
 except Exception as e:
     st.error(f"Error al procesar el archivo: {e}")
+
