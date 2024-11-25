@@ -9,7 +9,7 @@ def extraer_palabras_clave(texto):
     # Buscar las palabras clave en el texto
     palabras_encontradas = re.findall(patron_palabras_clave, texto, flags=re.IGNORECASE)
     
-    return palabras_encontradas
+    return list(set(palabras_encontradas))  # Evitar duplicados
 
 # Función para mostrar el contenido del juego
 def juego():
@@ -47,7 +47,6 @@ def juego():
         La ciudad estaba tranquila hasta que el ladrón se escapó de la cárcel. La policía no sabe mucho sobre el ladrón, pero hay algo extraño en el caso.
         En el pasado, el ladrón estuvo en prisión por robo y fraude. Nadie ha visto a la persona sospechosa desde entonces. 
         Los testigos afirman que fue un hombre de mediana edad, con una chaqueta azul y una gorra negra. 
-        ¿Quién es el ladrón?
         """
         preguntas = [
             ("¿Dónde estuvo el ladrón antes de escapar?", "Prisión"),
@@ -78,22 +77,25 @@ def juego():
 
     # Mostrar las palabras clave encontradas
     st.subheader("Palabras clave encontradas en el texto:")
-    st.write(", ".join(set(palabras_clave)))
+    st.write(", ".join(palabras_clave))
 
     # Preguntar al jugador
     st.subheader("Responde las siguientes preguntas:")
     
     respuestas = {}
     
-    for pregunta, _ in preguntas:
-        respuestas[pregunta] = st.text_input(pregunta, key=pregunta)
+    for pregunta, respuesta_correcta in preguntas:
+        # Crear un selectbox con las palabras clave como opciones
+        opciones = palabras_clave + [respuesta_correcta]  # Añadir la respuesta correcta
+        respuesta_usuario = st.selectbox(pregunta, opciones, key=pregunta)
+        respuestas[pregunta] = respuesta_usuario
 
     # Agregar el botón de verificación
     if st.button('Verificar respuestas', key="verificar_respuestas"):
         respuestas_correctas = 0
         
         # Verificar respuestas
-        for i, (pregunta, respuesta_correcta) in enumerate(preguntas):
+        for pregunta, respuesta_correcta in preguntas:
             if respuestas[pregunta].strip().lower() == respuesta_correcta.lower():
                 respuestas_correctas += 1
                 st.success(f"Respuesta correcta para: {pregunta}")
@@ -109,4 +111,3 @@ def juego():
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
-
