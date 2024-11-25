@@ -115,4 +115,3 @@ def juego():
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
-
