@@ -10,7 +10,7 @@ def extraer_info(linea):
     patron_email = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
     patron_telefono = r"\+\d{1,4}\s?\d{6,}"  # +57 123456 o similar
     patron_fecha = r"\d{2}/\d{2}/\d{2}"
-    patron_valor = r"\d+(\.\d+)?"
+    patron_valor = r"\d+\.\d+" 
 
     # Extraer información usando regex
     serie = re.search(patron_serie, linea)
