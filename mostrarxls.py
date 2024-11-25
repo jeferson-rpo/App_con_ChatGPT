@@ -2,46 +2,35 @@ import pandas as pd
 import re
 import streamlit as st
 
-# Función para extraer información de una línea con regex
+# Función mejorada para extraer información de una línea con regex
 def extraer_info(linea):
     # Patrones definidos para cada tipo de dato
-    patron_serie = r"^\d+-\d+"  # Ejemplo: 1234-5678 (ajusta si es necesario)
-    patron_nombre = r"[A-Z][a-z]+"
-    patron_email = r"\S+@\S+"
-    patron_telefono = r"\+\d+"
+    patron_serie = r"\d+-\d+"  # Ejemplo: 1234-5678
+    patron_nombre = r"[A-Z][a-z]+(?:\s[A-Z][a-z]+)*"  # Nombre compuesto
+    patron_email = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
+    patron_telefono = r"\+\d{1,4}\s?\d{6,}"  # +57 123456 o similar
     patron_fecha = r"\d{2}/\d{2}/\d{2}"
-    patron_valor = r"\d+(\.\d+)?$"
+    patron_valor = r"\d+(\.\d+)?"
 
-    # Inicializar variables
-    serie = ""
-    nombre = ""
-    email = ""
-    telefono = ""
-    fecha = ""
-    valor = ""
+    # Extraer información usando regex
+    serie = re.search(patron_serie, linea)
+    nombre = re.search(patron_nombre, linea)
+    email = re.search(patron_email, linea)
+    telefono = re.search(patron_telefono, linea)
+    fecha = re.search(patron_fecha, linea)
+    valor = re.search(patron_valor, linea)
 
-    # Dividir la línea en palabras
-    palabras = linea.split()
-
-    # Iterar sobre las palabras y aplicar los patrones
-    for palabra in palabras:
-        if re.match(patron_serie, palabra):
-            serie = palabra
-        elif re.match(patron_nombre, palabra):
-            nombre += f" {palabra}"
-        elif re.match(patron_email, palabra):
-            email = palabra
-        elif re.match(patron_telefono, palabra):
-            telefono = palabra
-        elif re.match(patron_fecha, palabra):
-            fecha = palabra
-        elif re.match(patron_valor, palabra):
-            valor = palabra
-
-    return [serie, nombre.strip(), valor, fecha, f"{email} {telefono}".strip()]
+    # Manejar valores extraídos y convertir None a ""
+    return [
+        serie.group() if serie else "",
+        nombre.group() if nombre else "",
+        valor.group() if valor else "",
+        fecha.group() if fecha else "",
+        f"{email.group() if email else ''} {telefono.group() if telefono else ''}".strip()
+    ]
 
 # Streamlit: configuración inicial
-st.title("Organizador de Datos con Regex")
+st.title("Organizador de Datos con Regex Mejorado")
 st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares.")
 
 # Leer y procesar el archivo CSV
