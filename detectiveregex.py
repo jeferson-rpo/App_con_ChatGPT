@@ -43,10 +43,10 @@ def juego():
     st.subheader("Responde las siguientes preguntas:")
     
     # Pregunta 1: ¿Dónde ocurrió el robo?
-    respuesta_1 = st.text_input("Pregunta 1: ¿Dónde ocurrió el robo? (Respuesta: Tienda de antigüedades)")
+    respuesta_1 = st.text_input("Pregunta 1: ¿Dónde ocurrió el robo? ")
     
     # Pregunta 2: ¿Qué llevaba el sospechoso?
-    respuesta_2 = st.text_input("Pregunta 2: ¿Qué llevaba el sospechoso? (Respuesta: Bolsa negra)")
+    respuesta_2 = st.text_input("Pregunta 2: ¿Qué llevaba el sospechoso? ")
     
     # Verificar respuestas
     if respuesta_1 and respuesta_2:
