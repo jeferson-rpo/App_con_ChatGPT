@@ -32,7 +32,7 @@ def extraer_info(linea):
 
 # Streamlit: configuración inicial
 st.title("Organizador de Datos con Regex Mejorado")
-st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares.")
+st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares por Jeferson Orley Restrepo Bedoya.")
 
 # Leer y procesar el archivo CSV
 nombre_archivo_csv = "regex_productos.csv"
