@@ -4,7 +4,7 @@ import re
 # Función para extraer las palabras clave usando expresiones regulares
 def extraer_palabras_clave(texto):
     # Patrones para las palabras clave (expresiones regulares)
-    patron_palabras_clave = r"\b(ladrón|robo|fraude|prisión|tienda|antigüedades|bolsa negra|testigos|2:00 AM|compañero|plan|1 de noviembre)\b"
+    patron_palabras_clave = r"\b(ladrón|robo|fraude|prisión|tienda|antigüedades|bolsa negra|testigos|2:00 AM|compañero|plan|1 de noviembre|cámaras de seguridad|escapó|desesperado|secuestro|sonido extraño)\b"
     
     # Buscar las palabras clave en el texto
     palabras_encontradas = re.findall(patron_palabras_clave, texto, flags=re.IGNORECASE)
@@ -13,23 +13,62 @@ def extraer_palabras_clave(texto):
 
 # Función para mostrar el contenido del juego
 def juego():
-    # Texto misterioso (Pistas del caso)
-    texto_pista = """
-    El robo ocurrió en la tienda de antigüedades el 12 de octubre. Según el informe de la policía, el ladrón ingresó en la tienda durante la noche.
-    La cámara de seguridad grabó todo el evento, pero no se puede identificar claramente al sospechoso.
-    Se sabe que el robo fue realizado por una persona que lleva una bolsa negra, y algunos testigos mencionaron haber oído un sonido extraño alrededor de las 2:00 AM.
-    El dueño de la tienda está desesperado por recuperar las piezas robadas.
-    """
-
-    # Título y descripción
+    # Títulos y descripción
     st.title("Detective Regex: Encuentra las Pistas")
     st.markdown("""
-    En este juego, serás un detective que usa pistas clave encontradas en el texto para resolver el misterio.
-    Usa las pistas encontradas para responder preguntas sobre el caso.
+    ¡Bienvenido, detective! En este juego, usarás pistas clave extraídas de textos misteriosos para resolver casos. 
+    Tu tarea es responder preguntas sobre los textos. ¡Resuelve el caso y avanza a niveles más difíciles!
     """)
 
+    # Seleccionar nivel
+    nivel = st.selectbox("Selecciona un nivel", ["Nivel 1: El Robo en la Tienda de Antigüedades", 
+                                               "Nivel 2: El Sospechoso Escapó", 
+                                               "Nivel 3: La Conexión Final"])
+
+    # Definir textos y preguntas de los niveles
+    if nivel == "Nivel 1: El Robo en la Tienda de Antigüedades":
+        texto_pista = """
+        El robo ocurrió en la tienda de antigüedades el 12 de octubre. Según el informe de la policía, el ladrón ingresó en la tienda durante la noche.
+        La cámara de seguridad grabó todo el evento, pero no se puede identificar claramente al sospechoso. 
+        Se sabe que el robo fue realizado por una persona que lleva una bolsa negra, y algunos testigos mencionaron haber oído un sonido extraño alrededor de las 2:00 AM.
+        El dueño de la tienda está desesperado por recuperar las piezas robadas.
+        """
+        preguntas = [
+            ("¿Dónde ocurrió el robo?", "Tienda de antigüedades"),
+            ("¿Qué llevaba el sospechoso?", "Bolsa negra"),
+            ("¿A qué hora se oyó el sonido extraño?", "2:00 AM"),
+            ("¿Qué usó la policía para investigar?", "Cámaras de seguridad")
+        ]
+
+    elif nivel == "Nivel 2: El Sospechoso Escapó":
+        texto_pista = """
+        La ciudad estaba tranquila hasta que el ladrón se escapó de la cárcel. La policía no sabe mucho sobre el ladrón, pero hay algo extraño en el caso.
+        En el pasado, el ladrón estuvo en prisión por robo y fraude. Nadie ha visto a la persona sospechosa desde entonces. 
+        Los testigos afirman que fue un hombre de mediana edad, con una chaqueta azul y una gorra negra. 
+        ¿Quién es el ladrón?
+        """
+        preguntas = [
+            ("¿Dónde estuvo el ladrón antes de escapar?", "Prisión"),
+            ("¿Qué delitos cometió el ladrón?", "Robo y fraude"),
+            ("¿Cómo era el ladrón?", "Hombre de mediana edad con chaqueta azul y gorra negra"),
+            ("¿Qué dijeron los testigos?", "Lo vieron escapar")
+        ]
+
+    elif nivel == "Nivel 3: La Conexión Final":
+        texto_pista = """
+        Después de días de investigación, encontramos una nueva pista. El sospechoso parece tener una conexión con un antiguo compañero de prisión que estuvo involucrado en robos similares. 
+        El compañero está en una localidad cercana, y se ha mencionado que ambos se reunieron el 1 de noviembre para discutir un plan.
+        La policía está monitoreando sus movimientos para capturarlos antes de que escapen.
+        """
+        preguntas = [
+            ("¿Cuándo se reunieron los dos sospechosos?", "1 de noviembre"),
+            ("¿Qué discutieron?", "Un plan para realizar un robo"),
+            ("¿Qué conecta a los dos sospechosos?", "Compañero de prisión"),
+            ("¿Qué está haciendo la policía?", "Monitoreando sus movimientos")
+        ]
+
     # Mostrar el texto del caso
-    st.subheader("Texto del Caso")
+    st.subheader(f"Texto del {nivel}")
     st.write(texto_pista)
 
     # Extraer las palabras clave usando regex
@@ -39,22 +78,23 @@ def juego():
     st.subheader("Palabras clave encontradas en el texto:")
     st.write(", ".join(set(palabras_clave)))
 
-    # Pregunta y respuestas
+    # Preguntar al jugador
     st.subheader("Responde las siguientes preguntas:")
     
-    # Pregunta 1: ¿Dónde ocurrió el robo?
-    respuesta_1 = st.text_input("Pregunta 1: ¿Dónde ocurrió el robo? ")
-    
-    # Pregunta 2: ¿Qué llevaba el sospechoso?
-    respuesta_2 = st.text_input("Pregunta 2: ¿Qué llevaba el sospechoso? ")
-    
-    # Verificar respuestas
-    if respuesta_1 and respuesta_2:
-        if respuesta_1.lower() == "tienda de antigüedades" and respuesta_2.lower() == "bolsa negra":
-            st.success("¡Correcto! Has encontrado las pistas clave y resuelto el caso.")
-        else:
-            st.error("Lo siento, una o más respuestas son incorrectas. Intenta de nuevo.")
-    
+    respuestas_correctas = 0
+
+    # Mostrar las preguntas y permitir respuestas
+    for pregunta, respuesta_correcta in preguntas:
+        respuesta = st.text_input(pregunta)
+        if respuesta.lower() == respuesta_correcta.lower():
+            respuestas_correctas += 1
+
+    # Mostrar el resultado
+    if respuestas_correctas == len(preguntas):
+        st.success("¡Correcto! Has resuelto el caso. ¡Avancemos al siguiente nivel!")
+    else:
+        st.warning("Algunas respuestas son incorrectas. Intenta de nuevo.")
+
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
