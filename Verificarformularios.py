@@ -25,7 +25,7 @@ def validar_fecha(fecha):
     return re.match(patron, fecha)
 
 # Título de la aplicación
-st.title("Validador de Formularios Colombianos")
+st.title("Validador de Formularios Colombianos por Jeferson Orley Restrepo Bedoya")
 
 # Campos del formulario
 nombre = st.text_input("Ingrese su nombre")
