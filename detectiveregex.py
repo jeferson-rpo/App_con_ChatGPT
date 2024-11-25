@@ -91,7 +91,7 @@ def juego():
             opciones.append(respuesta_correcta)  # Asegurarse de que la respuesta correcta esté incluida
         opciones = sorted(opciones)  # Ordenar las opciones alfabéticamente para que se vean más ordenadas
         
-        # Aquí el selectbox no tendrá un valor por defecto
+        # Aquí el selectbox tendrá "Selecciona una opción" por defecto
         respuestas[pregunta] = st.selectbox(pregunta, opciones, key=pregunta, index=0, help="Selecciona la respuesta correcta")
 
     # Agregar el botón de verificación
@@ -115,4 +115,5 @@ def juego():
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
+
 
