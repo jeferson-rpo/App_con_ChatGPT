@@ -5,7 +5,7 @@ import streamlit as st
 # Función mejorada para extraer información de una línea con regex
 def extraer_info(linea):
     # Patrones definidos para cada tipo de dato
-    patron_serie = r"\d+-\d+"  # Ejemplo: 1234-5678
+    patron_serie = r"\b\d{6}\b"  # Exactamente 6 dígitos
     patron_nombre = r"[A-Z][a-z]+(?:\s[A-Z][a-z]+)*"  # Nombre compuesto
     patron_email = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
     patron_telefono = r"\+\d{1,4}\s?\d{6,}"  # +57 123456 o similar
