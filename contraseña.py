@@ -61,7 +61,7 @@ def sugerencias(contrasena, longitud_minima):
         st.success("¡Excelente! Tu contraseña es muy segura.")
 
 # Título de la aplicación
-st.title("Evaluador de Contraseñas")
+st.title("Evaluador de Contraseñas por Jeferson Orley Restrepo Bedoya")
 
 # Barra lateral para personalizar la longitud mínima
 st.sidebar.title("Opciones")
