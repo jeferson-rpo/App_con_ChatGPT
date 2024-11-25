@@ -114,5 +114,7 @@ def juego():
         else:
             st.warning("🔍 Algunas respuestas son incorrectas. Intenta de nuevo.")
 
-# Llamada a 
+# Llamada a la función del juego
+if __name__ == "__main__":
+    juego()
 
