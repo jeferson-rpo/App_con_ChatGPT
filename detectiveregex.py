@@ -91,9 +91,8 @@ def juego():
             opciones.append(respuesta_correcta)  # Asegurarse de que la respuesta correcta esté incluida
         opciones = sorted(opciones)  # Ordenar las opciones alfabéticamente para que se vean más ordenadas
         
-        # Aquí el selectbox tendrá un valor vacío por defecto
-        respuestas[pregunta] = st.selectbox(pregunta, opciones, index=0, key=pregunta,
-                                             help="Selecciona la respuesta correcta")
+        # Aquí el selectbox no tendrá un valor por defecto
+        respuestas[pregunta] = st.selectbox(pregunta, opciones, key=pregunta, index=None, help="Selecciona la respuesta correcta")
 
     # Agregar el botón de verificación
     if st.button('Verificar respuestas', key="verificar_respuestas"):
