@@ -21,9 +21,11 @@ def juego():
     """)
 
     # Seleccionar nivel
-    nivel = st.selectbox("Selecciona un nivel", ["Nivel 1: El Robo en la Tienda de Antigüedades", 
-                                               "Nivel 2: El Sospechoso Escapó", 
-                                               "Nivel 3: La Conexión Final"])
+    nivel = st.selectbox("Selecciona un nivel", 
+                         ["Nivel 1: El Robo en la Tienda de Antigüedades", 
+                          "Nivel 2: El Sospechoso Escapó", 
+                          "Nivel 3: La Conexión Final"], 
+                         key="nivel_selectbox")
 
     # Definir textos y preguntas de los niveles
     if nivel == "Nivel 1: El Robo en la Tienda de Antigüedades":
@@ -84,10 +86,10 @@ def juego():
     respuestas = {}
     
     for pregunta, _ in preguntas:
-        respuestas[pregunta] = st.text_input(pregunta)
+        respuestas[pregunta] = st.text_input(pregunta, key=pregunta)
 
     # Agregar el botón de verificación
-    if st.button('Verificar respuestas'):
+    if st.button('Verificar respuestas', key="verificar_respuestas"):
         respuestas_correctas = 0
         
         # Verificar respuestas
@@ -108,5 +110,3 @@ def juego():
 if __name__ == "__main__":
     juego()
 
-if __name__ == "__main__":
-    juego()
