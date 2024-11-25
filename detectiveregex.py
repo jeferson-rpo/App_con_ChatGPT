@@ -4,12 +4,19 @@ import re
 # Función para extraer las palabras clave usando expresiones regulares
 def extraer_palabras_clave(texto):
     # Patrones para las palabras clave (expresiones regulares)
-    patron_palabras_clave = r"\b(ladrón|robo|fraude|prisión|tienda|antigüedades|bolsa negra|testigos|2:00 AM|compañero|plan|1 de noviembre|cámaras de seguridad|escapó|desesperado|secuestro|sonido extraño)\b"
+    patron_palabras_clave = r"\b(ladrón|robo|fraude|prisión|tienda|antigüedades|bolsa negra|testigos|2:00 AM|compañero|plan|1 de noviembre|cámaras de seguridad|escapó|desesperado|secuestro|sonido extraño|chaqueta azul|gorro negro)\b"
     
     # Buscar las palabras clave en el texto
     palabras_encontradas = re.findall(patron_palabras_clave, texto, flags=re.IGNORECASE)
     
     return list(set(palabras_encontradas))  # Evitar duplicados
+
+# Función para verificar si una respuesta contiene una palabra clave
+def verificar_respuesta(respuesta, palabra_clave):
+    # Usar regex para buscar la palabra clave en la respuesta
+    if re.search(r"\b" + re.escape(palabra_clave) + r"\b", respuesta, re.IGNORECASE):
+        return True
+    return False
 
 # Función para mostrar el contenido del juego
 def juego():
@@ -17,7 +24,7 @@ def juego():
     st.title("Detective Regex: Encuentra las Pistas")
     st.markdown("""
     ¡Bienvenido, detective! En este juego, usarás pistas clave extraídas de textos misteriosos para resolver casos. 
-    Tu tarea es responder preguntas sobre los textos. ¡Resuelve el caso y avanza a niveles más difíciles! por jeferson restrepo bedoya
+    Tu tarea es responder preguntas sobre los textos. ¡Resuelve el caso y avanza a niveles más difíciles!
     """)
 
     # Seleccionar nivel
@@ -37,9 +44,10 @@ def juego():
         """
         preguntas = [
             ("¿Dónde ocurrió el robo?", "Tienda de antigüedades"),
-            ("¿Qué llevaba el sospechoso?", "Bolsa negra"),
+            ("¿Qué llevaba el ladrón?", "Bolsa negra"),
             ("¿A qué hora se oyó el sonido extraño?", "2:00 AM"),
-            ("¿Qué usó la policía para investigar?", "Cámaras de seguridad")
+            ("¿Qué usó la policía para investigar?", "Cámaras de seguridad"),
+            ("¿Qué llevaba el ladrón?", "chaqueta azul")
         ]
 
     elif nivel == "Nivel 2: El Sospechoso Escapó":
@@ -51,7 +59,7 @@ def juego():
         preguntas = [
             ("¿Dónde estuvo el ladrón antes de escapar?", "Prisión"),
             ("¿Qué delitos cometió el ladrón?", "Robo y fraude"),
-            ("¿Cómo era el ladrón?", "Hombre de mediana edad con chaqueta azul y gorra negra"),
+            ("¿Qué llevaba el ladrón?", "Chaqueta azul"),
             ("¿Qué dijeron los testigos?", "Lo vieron escapar")
         ]
 
@@ -85,14 +93,8 @@ def juego():
     respuestas = {}
     
     for pregunta, respuesta_correcta in preguntas:
-        # Crear un selectbox con las palabras clave como opciones y un mensaje predeterminado
-        opciones = palabras_clave.copy()  # Copiar la lista de palabras clave
-        if respuesta_correcta not in opciones:
-            opciones.append(respuesta_correcta)  # Asegurarse de que la respuesta correcta esté incluida
-        opciones = sorted(opciones)  # Ordenar las opciones alfabéticamente para que se vean más ordenadas
-        
-        # Aquí el selectbox no tendrá un valor por defecto
-        respuestas[pregunta] = st.selectbox(pregunta, opciones, key=pregunta, index=None, help="Selecciona la respuesta correcta")
+        # Crear un cuadro de texto para que el jugador ingrese la respuesta completa
+        respuestas[pregunta] = st.text_input(pregunta, key=pregunta, help="Escribe la respuesta completa.")
 
     # Agregar el botón de verificación
     if st.button('Verificar respuestas', key="verificar_respuestas"):
@@ -100,7 +102,7 @@ def juego():
         
         # Verificar respuestas
         for pregunta, respuesta_correcta in preguntas:
-            if respuestas.get(pregunta, "").strip().lower() == respuesta_correcta.lower():
+            if verificar_respuesta(respuestas.get(pregunta, "").strip(), respuesta_correcta):
                 respuestas_correctas += 1
                 st.success(f"✔️ Respuesta correcta para: {pregunta}")
             else:
@@ -112,6 +114,5 @@ def juego():
         else:
             st.warning("🔍 Algunas respuestas son incorrectas. Intenta de nuevo.")
 
-# Llamada a la función del juego
-if __name__ == "__main__":
-    juego()
+# Llamada a 
+
