@@ -34,7 +34,7 @@ def evaluar_contrasena(contrasena, longitud_minima):
         return False
 
 def sugerencias(contrasena, longitud_minima):
-    """Proporciona sugerencias para mejorar la contraseña.
+    """Proporciona sugerencias específicas para mejorar la contraseña.
 
     Args:
         contrasena (str): La contraseña a evaluar.
@@ -43,15 +43,16 @@ def sugerencias(contrasena, longitud_minima):
 
     sugerencias = []
     if len(contrasena) < longitud_minima:
-        sugerencias.append(f"La contraseña debe tener al menos {longitud_minima} caracteres.")
-    if not re.search('[A-Z]', contrasena):
-        sugerencias.append("Incluye al menos una letra mayúscula.")
-    if not re.search('[a-z]', contrasena):
-        sugerencias.append("Incluye al menos una letra minúscula.")
-    if not re.search('\d', contrasena):
-        sugerencias.append("Incluye al menos un número.")
-    if not re.search('[^\w\s]', contrasena):
-        sugerencias.append("Incluye al menos un carácter especial.")
+        sugerencias.append(f"La contraseña es demasiado corta. Necesita al menos {longitud_minima} caracteres.")
+    else:
+        if not re.search('[A-Z]', contrasena):
+            sugerencias.append("Incluye al menos una letra mayúscula.")
+        if not re.search('[a-z]', contrasena):
+            sugerencias.append("Incluye al menos una letra minúscula.")
+        if not re.search('\d', contrasena):
+            sugerencias.append("Incluye al menos un número.")
+        if not re.search('[^\w\s]', contrasena):
+            sugerencias.append("Incluye al menos un carácter especial como !, @, #, $, %, etc.")
 
     if sugerencias:
         st.error("Tu contraseña no es lo suficientemente segura. Considera las siguientes sugerencias:")
@@ -69,6 +70,10 @@ longitud_minima = st.sidebar.slider("Longitud mínima", min_value=8, max_value=2
 
 # Input para la contraseña
 contrasena = st.text_input("Ingrese su contraseña")
+
+# Botón para evaluar
+if st.button("Evaluar"):
+    sugerencias(contrasena, longitud_minima)
 
 # Botón para evaluar
 if st.button("Evaluar"):
