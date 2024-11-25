@@ -1,40 +1,82 @@
 import pandas as pd
-#codigo realizado por geminis
-#importar librerias 
-import streamlit as st
 import re
+import streamlit as st
 
-# Función para extraer la información de una línea
+# Función para extraer información de una línea con regex
 def extraer_info(linea):
-    # ... (tu código de extracción de información)
+    # Patrones definidos para cada tipo de dato
+    patron_serie = r"^\d+-\d+"  # Ejemplo: 1234-5678 (ajusta si es necesario)
+    patron_nombre = r"[A-Z][a-z]+"
+    patron_email = r"\S+@\S+"
+    patron_telefono = r"\+\d+"
+    patron_fecha = r"\d{2}/\d{2}/\d{2}"
+    patron_valor = r"\d+(\.\d+)?$"
 
-# Función para cargar los datos desde el CSV
-def cargar_datos(archivo_csv):
-    datos = []
-    with open(archivo_csv, "r") as f:
-        lineas = f.readlines()
-        for linea in lineas:
-            datos.append(extraer_info(linea))
-    df = pd.DataFrame(datos, columns=["Nombre", "Email", "Teléfono", "Fecha", "Valor"])
-    return df
+    # Inicializar variables
+    serie = ""
+    nombre = ""
+    email = ""
+    telefono = ""
+    fecha = ""
+    valor = ""
 
-# Crear la aplicación Streamlit
-def app():
-    st.title("Explorador de Datos de Productos")
+    # Dividir la línea en palabras
+    palabras = linea.split()
 
-    # Cargar los datos
-    df = cargar_datos("tu_archivo.csv")
+    # Iterar sobre las palabras y aplicar los patrones
+    for palabra in palabras:
+        if re.match(patron_serie, palabra):
+            serie = palabra
+        elif re.match(patron_nombre, palabra):
+            nombre += f" {palabra}"
+        elif re.match(patron_email, palabra):
+            email = palabra
+        elif re.match(patron_telefono, palabra):
+            telefono = palabra
+        elif re.match(patron_fecha, palabra):
+            fecha = palabra
+        elif re.match(patron_valor, palabra):
+            valor = palabra
 
-    # Crear un selector para filtrar por nombre de producto
-    producto = st.selectbox("Selecciona un producto", df['Nombre'].unique())
-    df_filtrado = df[df['Nombre'] == producto]
+    return [serie, nombre.strip(), valor, fecha, f"{email} {telefono}".strip()]
 
-    # Mostrar los datos filtrados en una tabla
-    st.dataframe(df_filtrado)
+# Streamlit: configuración inicial
+st.title("Organizador de Datos con Regex")
+st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares.")
 
-    # Crear un gráfico de línea del valor
-    st.line_chart(df_filtrado['Valor'])
+# Leer y procesar el archivo CSV
+nombre_archivo_csv = "regex_productos.csv"
 
-# Ejecutar la aplicación
-if __name__ == '__main__':
-    app()
+try:
+    # Leer el archivo
+    with open(nombre_archivo_csv, "r") as file:
+        lineas = file.readlines()
+
+    # Procesar cada línea y extraer la información
+    datos = [extraer_info(linea) for linea in lineas]
+
+    # Crear un DataFrame
+    columnas = ["Número de serie", "Nombre del producto", "Valor", "Fecha de compra", "Información de contacto"]
+    df = pd.DataFrame(datos, columns=columnas)
+
+    # Mostrar los datos organizados
+    st.write("Datos organizados:")
+    st.dataframe(df)
+
+    # Guardar los datos en un archivo Excel
+    nombre_archivo_excel = "productos_organizados.xls"
+    df.to_excel(nombre_archivo_excel, index=False)
+
+    # Descargar el archivo Excel
+    with open(nombre_archivo_excel, "rb") as file:
+        st.download_button(
+            label="Descargar archivo organizado en Excel",
+            data=file,
+            file_name=nombre_archivo_excel,
+            mime="application/vnd.ms-excel",
+        )
+
+except FileNotFoundError:
+    st.error(f"El archivo '{nombre_archivo_csv}' no se encontró. Asegúrate de que esté en el directorio actual.")
+except Exception as e:
+    st.error(f"Error al procesar el archivo: {e}")
