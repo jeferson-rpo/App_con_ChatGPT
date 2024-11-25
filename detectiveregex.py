@@ -85,9 +85,11 @@ def juego():
     respuestas = {}
     
     for pregunta, respuesta_correcta in preguntas:
-        # Crear un selectbox con las palabras clave como opciones
+        # Crear un selectbox con las palabras clave como opciones y un mensaje predeterminado
         opciones = palabras_clave + [respuesta_correcta]  # Añadir la respuesta correcta
-        respuesta_usuario = st.selectbox(pregunta, opciones, key=pregunta)
+        respuesta_usuario = st.selectbox(pregunta, opciones, key=pregunta, 
+                                         format_func=lambda x: x if x != respuesta_correcta else f"Selecciona la respuesta correcta ({x})")
+
         respuestas[pregunta] = respuesta_usuario
 
     # Agregar el botón de verificación
@@ -111,4 +113,3 @@ def juego():
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
-
