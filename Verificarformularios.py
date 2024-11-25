@@ -34,14 +34,24 @@ telefono = st.text_input("Ingrese su número de teléfono (10 dígitos)")
 fecha_nacimiento = st.text_input("Ingrese su fecha de nacimiento (DD/MM/AAAA)")
 
 # Botón para validar
+# Botón para validar
 if st.button("Validar"):
-    if not validar_nombre(nombre):
-        st.error("El nombre debe contener solo letras y comenzar con mayúscula.")
-    if not validar_email(email):
-        st.error("El correo electrónico no es válido.")
-    if not validar_telefono_colombia(telefono):
-        st.error("El número de teléfono debe tener 10 dígitos y ser válido para Colombia.")
-    if not validar_fecha(fecha_nacimiento):
-        st.error("La fecha de nacimiento no es válida. Use el formato DD/MM/AAAA y asegúrese de que esté dentro del rango permitido.")
+    if validar_nombre(nombre):
+        st.success("El nombre es válido.")
     else:
-        st.success("¡Todos los datos son válidos!")
+        st.error("El nombre no es válido.")
+
+    if validar_email(email):
+        st.success("El correo electrónico es válido.")
+    else:
+        st.error("El correo electrónico no es válido.")
+
+    if validar_telefono_colombia(telefono):
+        st.success("El número de teléfono es válido.")
+    else:
+        st.error("El número de teléfono no es válido.")
+
+    if validar_fecha(fecha_nacimiento):
+        st.success("La fecha de nacimiento es válida.")
+    else:
+        st.error("La fecha de nacimiento no es válida.")
