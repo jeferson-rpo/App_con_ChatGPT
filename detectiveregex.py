@@ -89,9 +89,11 @@ def juego():
         opciones = palabras_clave.copy()  # Copiar la lista de palabras clave
         if respuesta_correcta not in opciones:
             opciones.append(respuesta_correcta)  # Asegurarse de que la respuesta correcta esté incluida
-        st.selectbox(pregunta, opciones, key=pregunta,
-                     help="Selecciona la respuesta correcta",
-                     format_func=lambda x: x if x != respuesta_correcta else f"Selecciona la respuesta correcta ({x})")
+        opciones = sorted(opciones)  # Ordenar las opciones alfabéticamente para que se vean más ordenadas
+        
+        # Aquí el selectbox tendrá un valor vacío por defecto
+        respuestas[pregunta] = st.selectbox(pregunta, opciones, index=0, key=pregunta,
+                                             help="Selecciona la respuesta correcta")
 
     # Agregar el botón de verificación
     if st.button('Verificar respuestas', key="verificar_respuestas"):
@@ -114,4 +116,5 @@ def juego():
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
+
 
