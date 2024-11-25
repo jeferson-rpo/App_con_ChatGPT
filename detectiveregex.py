@@ -81,20 +81,32 @@ def juego():
     # Preguntar al jugador
     st.subheader("Responde las siguientes preguntas:")
     
-    respuestas_correctas = 0
+    respuestas = {}
+    
+    for pregunta, _ in preguntas:
+        respuestas[pregunta] = st.text_input(pregunta)
 
-    # Mostrar las preguntas y permitir respuestas
-    for pregunta, respuesta_correcta in preguntas:
-        respuesta = st.text_input(pregunta)
-        if respuesta.lower() == respuesta_correcta.lower():
-            respuestas_correctas += 1
-
-    # Mostrar el resultado
-    if respuestas_correctas == len(preguntas):
-        st.success("¡Correcto! Has resuelto el caso. ¡Avancemos al siguiente nivel!")
-    else:
-        st.warning("Algunas respuestas son incorrectas. Intenta de nuevo.")
+    # Agregar el botón de verificación
+    if st.button('Verificar respuestas'):
+        respuestas_correctas = 0
+        
+        # Verificar respuestas
+        for i, (pregunta, respuesta_correcta) in enumerate(preguntas):
+            if respuestas[pregunta].strip().lower() == respuesta_correcta.lower():
+                respuestas_correctas += 1
+                st.success(f"Respuesta correcta para: {pregunta}")
+            else:
+                st.error(f"Respuesta incorrecta para: {pregunta}. La respuesta correcta era: {respuesta_correcta}")
+        
+        # Verificar si todas las respuestas son correctas
+        if respuestas_correctas == len(preguntas):
+            st.success("¡Correcto! Has resuelto el caso. ¡Avancemos al siguiente nivel!")
+        else:
+            st.warning("Algunas respuestas son incorrectas. Intenta de nuevo.")
 
 # Llamada a la función del juego
+if __name__ == "__main__":
+    juego()
+
 if __name__ == "__main__":
     juego()
