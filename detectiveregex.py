@@ -17,7 +17,7 @@ def juego():
     st.title("Detective Regex: Encuentra las Pistas")
     st.markdown("""
     ¡Bienvenido, detective! En este juego, usarás pistas clave extraídas de textos misteriosos para resolver casos. 
-    Tu tarea es responder preguntas sobre los textos. ¡Resuelve el caso y avanza a niveles más difíciles!
+    Tu tarea es responder preguntas sobre los textos. ¡Resuelve el caso y avanza a niveles más difíciles! por Jeferson Orley Restrepo Bedoya
     """)
 
     # Seleccionar nivel
