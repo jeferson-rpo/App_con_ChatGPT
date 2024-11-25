@@ -86,7 +86,7 @@ def juego():
     
     for pregunta, respuesta_correcta in preguntas:
         # Crear un selectbox con las palabras clave como opciones y un mensaje predeterminado en español
-        opciones = palabras_clave.copy()  # Copiar la lista de palabras clave
+        opciones = ["Selecciona una opción"] + palabras_clave.copy()  # Agregar "Selecciona una opción" como primera opción
         if respuesta_correcta not in opciones:
             opciones.append(respuesta_correcta)  # Asegurarse de que la respuesta correcta esté incluida
         opciones = sorted(opciones)  # Ordenar las opciones alfabéticamente para que se vean más ordenadas
