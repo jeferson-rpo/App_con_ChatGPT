@@ -85,13 +85,13 @@ def juego():
     respuestas = {}
     
     for pregunta, respuesta_correcta in preguntas:
-        # Crear un selectbox con las palabras clave como opciones y un mensaje predeterminado en español
-        opciones = ["Selecciona una opción"] + palabras_clave.copy()  # Agregar "Selecciona una opción" como primera opción
+        # Crear un selectbox con las palabras clave como opciones y un valor vacío por defecto
+        opciones = [""] + palabras_clave.copy()  # Agregar un valor vacío como primera opción
         if respuesta_correcta not in opciones:
             opciones.append(respuesta_correcta)  # Asegurarse de que la respuesta correcta esté incluida
         opciones = sorted(opciones)  # Ordenar las opciones alfabéticamente para que se vean más ordenadas
         
-        # Aquí el selectbox tendrá "Selecciona una opción" por defecto
+        # Aquí el selectbox tendrá un valor vacío por defecto
         respuestas[pregunta] = st.selectbox(pregunta, opciones, key=pregunta, index=0, help="Selecciona la respuesta correcta")
 
     # Agregar el botón de verificación
@@ -115,5 +115,4 @@ def juego():
 # Llamada a la función del juego
 if __name__ == "__main__":
     juego()
-
 
