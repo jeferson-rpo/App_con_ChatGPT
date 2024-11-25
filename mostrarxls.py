@@ -10,7 +10,7 @@ def extraer_info(linea):
     patron_email = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
     patron_telefono = r"\+\d{1,4}\s?\d{6,}"  # +57 123456 o similar
     patron_fecha = r"\d{2}/\d{2}/\d{2}"
-    patron_valor = r"\d+\.\d+" 
+    patron_valor = r"\d+\.\d+"  # Números con punto decimal (ej: 123.45)
 
     # Extraer información usando regex
     serie = re.search(patron_serie, linea)
@@ -26,12 +26,24 @@ def extraer_info(linea):
         nombre.group() if nombre else "",
         valor.group() if valor else "",
         fecha.group() if fecha else "",
-        f"{email.group() if email else ''} {telefono.group() if telefono else ''}".strip()
+        email.group() if email else "",
+        telefono.group() if telefono else ""
     ]
 
 # Streamlit: configuración inicial
 st.title("Organizador de Datos con Regex Mejorado")
-st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares.")
+st.write("Esta aplicación organiza datos de un archivo CSV utilizando expresiones regulares Por Jeferson Orley Restrepo Bedoya.")
+
+# Leer y procesar el archivo CSV
+nombre_archivo_csv = "regex_productos.csv"
+
+try:
+    # Leer el archivo
+    with open(nombre_archivo_csv, "r") as file:
+        lineas = file.readlines()
+
+    # Procesar cada
+")
 
 # Leer y procesar el archivo CSV
 nombre_archivo_csv = "regex_productos.csv"
