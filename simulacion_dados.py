@@ -1,9 +1,6 @@
 # importar librerias 
 import numpy as np
 import streamlit as st
-
-import numpy as np
-import streamlit as st
 import pandas as pd  # Importar pandas
 
 # Configurar la semilla para reproducibilidad 
