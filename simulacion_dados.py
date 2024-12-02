@@ -1,3 +1,4 @@
+# importar librerias 
 import numpy as np
 import streamlit as st
 
@@ -35,6 +36,7 @@ st.write(f"Desviación estándar: {desviacion_estandar:.2f}")
 # Mostrar tabla de análisis de frecuencias
 st.write("Frecuencias de cada número:")
 tabla_frecuencias = np.vstack((np.arange(1, 7), frecuencias)).T
-st.table(tabla_frecuencias)
+tabla_frecuencias_df = pd.DataFrame(tabla_frecuencias, columns=['Número de Dado', 'Frecuencia'])
+st.table(tabla_frecuencias_df)
 
 
