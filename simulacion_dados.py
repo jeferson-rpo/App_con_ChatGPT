@@ -2,8 +2,12 @@
 import numpy as np
 import streamlit as st
 
-# Configurar la semilla para reproducibilidad (sustituye '123456789' por tu número de cédula)
-np.random.seed(123456789)
+import numpy as np
+import streamlit as st
+import pandas as pd  # Importar pandas
+
+# Configurar la semilla para reproducibilidad 
+np.random.seed(1036678356)
 
 # Simular el lanzamiento de un dado 20 veces
 lanzamientos = np.random.randint(1, 7, 20)  # Valores entre 1 y 6, como un dado
@@ -33,10 +37,14 @@ st.write(f"Moda: {moda}")
 st.write(f"Varianza: {varianza:.2f}")
 st.write(f"Desviación estándar: {desviacion_estandar:.2f}")
 
-# Mostrar tabla de análisis de frecuencias
+# Mostrar tabla de análisis de frecuencias con pandas
 st.write("Frecuencias de cada número:")
-tabla_frecuencias = np.vstack((np.arange(1, 7), frecuencias)).T
-tabla_frecuencias_df = pd.DataFrame(tabla_frecuencias, columns=['Número de Dado', 'Frecuencia'])
-st.table(tabla_frecuencias_df)
+tabla_frecuencias = pd.DataFrame({
+    'Número de Dado': np.arange(1, 7),
+    'Frecuencia': frecuencias
+})
+st.table(tabla_frecuencias)
+
+
 
 
