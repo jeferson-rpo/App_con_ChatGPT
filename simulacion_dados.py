@@ -23,8 +23,8 @@ moda = valores_unicos[np.argmax(conteo)]
 frecuencias = np.bincount(lanzamientos)[1:]  # Contar la frecuencia de cada número del 1 al 6
 
 # Mostrar los resultados en Streamlit
-st.title("Simulación de Lanzamiento de un Dado")
-st.write("Resultados de los lanzamientos:")
+st.title("Simulación de Lanzamiento de un Dado por Jeferson orley restrepo bedoya ")
+st.write("Resultados de los lanzamientos de un dado 20 veces :")
 st.write(f"<h3 style='font-size: 24px;'>Lanzamientos realizados:</h3>", unsafe_allow_html=True)
 st.write(f"<h2 style='font-size: 28px;'>{lanzamientos}</h2>", unsafe_allow_html=True)
 
