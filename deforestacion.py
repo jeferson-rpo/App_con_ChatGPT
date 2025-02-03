@@ -39,8 +39,8 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
     # Limpiar las columnas de texto (tipo 'object' o 'string') con el valor más frecuente
     gdf_texto = gdf.select_dtypes(include=['object', 'string'])
     if not gdf_texto.empty:
-        # Identificar el valor más frecuente para cada columna de texto
-        valores_frecuentes = gdf_texto.apply(lambda x: x.mode()[0] if not x.mode().empty else 'Desconocido')
+        # Contar los valores únicos y obtener el que más se repite
+        valores_frecuentes = gdf_texto.apply(lambda x: x.value_counts().idxmax() if not x.dropna().empty else 'Desconocido')
         gdf[gdf_texto.columns] = gdf_texto.fillna(valores_frecuentes)
 
     # Asegurarse de que los tipos de datos sean coherentes
@@ -48,3 +48,4 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
 
     # Mostrar el DataFrame limpio
     st.write("Archivo limpio:", gdf)
+
