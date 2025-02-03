@@ -24,20 +24,20 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
     # Identificar los NaN en el DataFrame
     st.write("NaN en las columnas:", gdf.isna().sum())
 
-    # Limpiar las columnas numéricas
+    # Limpiar las columnas numéricas: rellenar NaN con la media
     gdf_numéricas = gdf.select_dtypes(include=['float64', 'int64'])
-    gdf[gdf_numéricas.columns] = gdf_numéricas.fillna(gdf_numéricas.mean())  # Rellenar NaN con la media
+    gdf[gdf_numéricas.columns] = gdf_numéricas.fillna(gdf_numéricas.mean())  # Reemplazar NaN con la media
 
-    # Limpiar las columnas de fechas
+    # Limpiar las columnas de fechas: convertir a datetime y rellenar NaT con una fecha por defecto
     gdf_fechas = gdf.select_dtypes(include=['object']).apply(pd.to_datetime, errors='coerce')
-    gdf[gdf_fechas.columns] = gdf_fechas.fillna(pd.to_datetime('1970-01-01'))  # Rellenar con fecha por defecto
+    gdf[gdf_fechas.columns] = gdf_fechas.fillna(pd.to_datetime('1970-01-01'))  # Fecha por defecto para NaT
 
-    # Limpiar las columnas de texto
+    # Limpiar las columnas de texto: rellenar NaN con el valor más frecuente
     gdf_texto = gdf.select_dtypes(include=['object'])
-    frecuentes = gdf_texto.mode().iloc[0]  # Valor más frecuente
-    gdf[gdf_texto.columns] = gdf_texto.fillna(frecuentes)  # Rellenar NaN con el valor más frecuente
+    valores_frecuentes = gdf_texto.mode().iloc[0]
+    gdf[gdf_texto.columns] = gdf_texto.fillna(valores_frecuentes)  # Rellenar NaN con el valor más frecuente
 
-    # Asegurarse de que los tipos de datos sean coherentes
+    # Asegurarse de que los tipos de datos sean coherentes después de la limpieza
     gdf = gdf.convert_dtypes()
 
     # Mostrar el DataFrame limpio
