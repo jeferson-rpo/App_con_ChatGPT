@@ -110,4 +110,3 @@ st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
 
 
-
