@@ -36,12 +36,10 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
         fecha_promedio = gdf_fechas.mean()  # Calcular el promedio de las fechas
         gdf[gdf_fechas.columns] = gdf_fechas.fillna(fecha_promedio)  # Rellenar con el promedio
 
-    # Limpiar las columnas de texto (tipo 'object' o 'string') con el valor más frecuente
-    gdf_texto = gdf.select_dtypes(include=['object', 'string'])
+    # Eliminar NaN en las columnas de texto (tipo 'object') directamente
+    gdf_texto = gdf.select_dtypes(include=['object'])
     if not gdf_texto.empty:
-        # Reemplazar NaN por el valor más frecuente solo si hay NaN
-        valores_frecuentes = gdf_texto.apply(lambda x: x.value_counts().idxmax() if x.isnull().any() else x.mode()[0])
-        gdf[gdf_texto.columns] = gdf_texto.fillna(valores_frecuentes)
+        gdf = gdf.dropna(subset=gdf_texto.columns)  # Eliminar filas con NaN en columnas de texto
 
     # Asegurarse de que los tipos de datos sean coherentes
     gdf = gdf.convert_dtypes()
