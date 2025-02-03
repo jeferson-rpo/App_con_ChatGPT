@@ -36,12 +36,13 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
         fecha_promedio = gdf_fechas.mean()  # Calcular el promedio de las fechas
         gdf[gdf_fechas.columns] = gdf_fechas.fillna(fecha_promedio)  # Rellenar con el promedio
 
-    # Limpiar las columnas de texto sin usar lambda ni ciclos for
+    # Limpiar las columnas de texto (Tipo_Vegetacion en este caso)
     gdf_texto = gdf.select_dtypes(include=['object'])
     if not gdf_texto.empty:
-        # Obtener el valor más frecuente por cada columna de texto
-        valores_frecuentes = gdf_texto.mode().iloc[0]
-        gdf[gdf_texto.columns] = gdf_texto.fillna(valores_frecuentes)  # Rellenar NaN con el valor más frecuente
+        # Asegurarse de que 'Tipo_Vegetacion' no contenga NaN antes de aplicar el relleno
+        if 'Tipo_Vegetacion' in gdf_texto.columns:
+            tipo_vegetacion_frecuente = gdf['Tipo_Vegetacion'].mode()[0]  # Obtener el valor más frecuente de la columna
+            gdf['Tipo_Vegetacion'] = gdf['Tipo_Vegetacion'].fillna(tipo_vegetacion_frecuente)  # Rellenar NaN con el valor más frecuente
 
     # Asegurarse de que los tipos de datos sean coherentes
     gdf = gdf.convert_dtypes()
