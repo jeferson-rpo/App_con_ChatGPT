@@ -29,18 +29,22 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
     if not gdf_numéricas.empty:
         gdf[gdf_numéricas.columns] = gdf_numéricas.fillna(gdf_numéricas.mean())  # Rellenar NaN con la media
 
-    # Limpiar las columnas de fechas
-    gdf_fechas = gdf.select_dtypes(include=['object']).apply(pd.to_datetime, errors='coerce')  # Convertir a datetime, forzando errores a NaT
-    fecha_promedio = gdf_fechas.mean()  # Calcular el promedio de las fechas
-    gdf[gdf_fechas.columns] = gdf_fechas.fillna(fecha_promedio)  # Rellenar NaT con el promedio
+    # Limpiar las columnas de fechas (solo las de tipo datetime)
+    gdf_fechas = gdf.select_dtypes(include=['datetime64'])
+    if not gdf_fechas.empty:
+        for col in gdf_fechas.columns:
+            fecha_promedio = gdf_fechas[col].mean()  # Calcular el promedio de las fechas
+            gdf[col] = gdf[col].fillna(fecha_promedio)  # Rellenar NaT con el promedio
 
-    # Eliminar NaN en las columnas de texto (tipo 'object') directamente
+    # Limpiar las columnas de texto (tipo object)
     gdf_texto = gdf.select_dtypes(include=['object'])
     if not gdf_texto.empty:
-        gdf = gdf.dropna(subset=gdf_texto.columns)  # Eliminar filas con NaN en columnas de texto
+        for col in gdf_texto.columns:
+            valor_frecuente = gdf[col].mode()[0]  # Obtener el valor más frecuente
+            gdf[col] = gdf[col].fillna(valor_frecuente)  # Rellenar NaN con el valor más frecuente
 
     # Asegurarse de que los tipos de datos sean coherentes
     gdf = gdf.convert_dtypes()
 
     # Mostrar el DataFrame limpio
-    st.write("Archivo limpio:", gdf)
+    st.write("Datos limpiados:", gdf)
