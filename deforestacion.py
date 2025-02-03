@@ -71,8 +71,15 @@ También podrás ver estadísticas de la deforestación.
 tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", df['Tipo_Vegetacion'].unique())
 
 # Filtro de altitud
-altitud_min = st.slider("Seleccionar altitud mínima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=0)
-altitud_max = st.slider("Seleccionar altitud máxima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=df['Altitud'].max())
+altitud_min = st.slider("Seleccionar altitud mínima", 
+                        min_value=int(df['Altitud'].min()), 
+                        max_value=int(df['Altitud'].max()), 
+                        value=int(df['Altitud'].min()))
+
+altitud_max = st.slider("Seleccionar altitud máxima", 
+                        min_value=int(df['Altitud'].min()), 
+                        max_value=int(df['Altitud'].max()), 
+                        value=int(df['Altitud'].max()))
 
 # Filtros para precipitación
 precipitacion_min = st.slider("Seleccionar precipitación mínima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=df['Precipitacion'].min())
@@ -102,4 +109,5 @@ st.write(f"Tasa de deforestación promedio: {tasa_deforestacion:.2f} %")
 # Mostrar estadísticas de los puntos filtrados
 st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
+
 
