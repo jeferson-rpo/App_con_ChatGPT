@@ -3,9 +3,35 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
-# Cargar el archivo de deforestación (asegurate de que el DataFrame 'df' esté cargado)
-# df = pd.read_csv('deforestacion.csv')  # Asegúrate de cargar tu archivo correctamente
+#ruta
+ruta="https://raw.githubusercontent.com/gabrielawad/programacion-para-\
+ingenieria/refs/heads/main/archivos-datos/aplicaciones/deforestacion.\
+csv"
 
+# Cargar el dataset
+df = pd.read_csv(ruta)
+
+# Convertir la columna Fecha a formato datetime
+df['Fecha'] = pd.to_datetime(df['Fecha'])
+
+# Aplicar interpolación lineal a la fecha
+df['Fecha'] = df['Fecha'].interpolate()
+
+# Interpolación lineal para datos continuos
+# (fecha, latitud, longitud, altitud, precipitación)
+df[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']] =\
+ df[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']].interpolate()
+
+# Rellenar datos numéricos con la media
+columnas_numericas = ['Superficie_Deforestada', 'Tasa_Deforestacion',\
+                      'Pendiente', 'Distancia_Carretera', 'Temperatura']
+
+df[columnas_numericas] = df[columnas_numericas].\
+fillna(df[columnas_numericas].mean())
+
+# Rellenar la columna categórica con el valor más frecuente
+df['Tipo_Vegetacion'] = df['Tipo_Vegetacion'].\
+fillna(df['Tipo_Vegetacion'].mode()[0])
 # Convertir el DataFrame de deforestación en un GeoDataFrame
 gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['Longitud'], df['Latitud']))
 
