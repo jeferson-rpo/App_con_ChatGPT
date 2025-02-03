@@ -3,6 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+
 #ruta
 ruta="https://raw.githubusercontent.com/gabrielawad/programacion-para-\
 ingenieria/refs/heads/main/archivos-datos/aplicaciones/deforestacion.\
@@ -33,7 +34,6 @@ fillna(df[columnas_numericas].mean())
 df['Tipo_Vegetacion'] = df['Tipo_Vegetacion'].\
 fillna(df['Tipo_Vegetacion'].mode()[0])
 
-st.write(df['Altitud'].describe())
 # Convertir el DataFrame de deforestación en un GeoDataFrame
 gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['Longitud'], df['Latitud']))
 
@@ -67,10 +67,35 @@ También podrás ver estadísticas de la deforestación.
 
 # Filtros interactivos
 tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", df['Tipo_Vegetacion'].unique())
-altitud_min = st.slider("Seleccionar altitud mínima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=0)
-altitud_max = st.slider("Seleccionar altitud máxima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=1000)
-precipitacion_min = st.slider("Seleccionar precipitación mínima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=1000)
-precipitacion_max = st.slider("Seleccionar precipitación máxima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=3000)
+
+# Modificar los sliders para usar valores enteros
+altitud_min = st.slider(
+    "Seleccionar altitud mínima", 
+    min_value=int(df['Altitud'].min()), 
+    max_value=int(df['Altitud'].max()), 
+    value=int(df['Altitud'].min())  # Ajustamos para que el valor por defecto sea el mínimo
+)
+
+altitud_max = st.slider(
+    "Seleccionar altitud máxima", 
+    min_value=int(df['Altitud'].min()), 
+    max_value=int(df['Altitud'].max()), 
+    value=int(df['Altitud'].max())  # Ajustamos para que el valor por defecto sea el máximo
+)
+
+precipitacion_min = st.slider(
+    "Seleccionar precipitación mínima", 
+    min_value=int(df['Precipitacion'].min()), 
+    max_value=int(df['Precipitacion'].max()), 
+    value=int(df['Precipitacion'].min())
+)
+
+precipitacion_max = st.slider(
+    "Seleccionar precipitación máxima", 
+    min_value=int(df['Precipitacion'].min()), 
+    max_value=int(df['Precipitacion'].max()), 
+    value=int(df['Precipitacion'].max())
+)
 
 # Filtrar los datos según los filtros seleccionados
 gdf_filtrado = gdf[
@@ -96,3 +121,4 @@ st.write(f"Tasa de deforestación promedio: {tasa_deforestacion:.2f} %")
 # Mostrar estadísticas de los puntos filtrados
 st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
+
