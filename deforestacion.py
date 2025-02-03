@@ -3,8 +3,8 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
-#ruta
-ruta="https://raw.githubusercontent.com/gabrielawad/programacion-para-\
+# ruta
+ruta = "https://raw.githubusercontent.com/gabrielawad/programacion-para-\
 ingenieria/refs/heads/main/archivos-datos/aplicaciones/deforestacion.\
 csv"
 
@@ -20,18 +20,18 @@ df['Fecha'] = df['Fecha'].interpolate()
 # Interpolación lineal para datos continuos
 # (fecha, latitud, longitud, altitud, precipitación)
 df[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']] =\
- df[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']].interpolate()
+    df[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']].interpolate()
 
 # Rellenar datos numéricos con la media
 columnas_numericas = ['Superficie_Deforestada', 'Tasa_Deforestacion',\
                       'Pendiente', 'Distancia_Carretera', 'Temperatura']
 
 df[columnas_numericas] = df[columnas_numericas].\
-fillna(df[columnas_numericas].mean())
+    fillna(df[columnas_numericas].mean())
 
 # Rellenar la columna categórica con el valor más frecuente
 df['Tipo_Vegetacion'] = df['Tipo_Vegetacion'].\
-fillna(df['Tipo_Vegetacion'].mode()[0])
+    fillna(df['Tipo_Vegetacion'].mode()[0])
 
 # Convertir el DataFrame de deforestación en un GeoDataFrame
 gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['Longitud'], df['Latitud']))
@@ -67,33 +67,17 @@ También podrás ver estadísticas de la deforestación.
 # Filtros interactivos
 tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", df['Tipo_Vegetacion'].unique())
 
-# Modificar los sliders para usar valores enteros
-altitud_min = st.slider(
-    "Seleccionar altitud mínima", 
-    min_value=int(df['Altitud'].min()), 
-    max_value=int(df['Altitud'].max()), 
-    value=int(df['Altitud'].min())  # Ajustamos para que el valor por defecto sea el mínimo
-)
+# Slider para la altitud
+altitud_min = st.slider("Seleccionar altitud mínima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=0)
+altitud_max = st.slider("Seleccionar altitud máxima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=1000)
 
-altitud_max = st.slider(
-    "Seleccionar altitud máxima", 
-    min_value=int(df['Altitud'].min()), 
-    max_value=int(df['Altitud'].max()), 
-    value=int(df['Altitud'].max())  # Ajustamos para que el valor por defecto sea el máximo
-)
-
-precipitacion_min = st.slider(
-    "Seleccionar precipitación mínima", 
-    min_value=int(df['Precipitacion'].min()), 
-    max_value=int(df['Precipitacion'].max()), 
-    value=int(df['Precipitacion'].min())
-)
-
-precipitacion_max = st.slider(
-    "Seleccionar precipitación máxima", 
-    min_value=int(df['Precipitacion'].min()), 
-    max_value=int(df['Precipitacion'].max()), 
-    value=int(df['Precipitacion'].max())
+# Slider para el rango de precipitación
+precipitacion_rango = st.slider(
+    "Seleccionar rango de precipitación",
+    min_value=int(df['Precipitacion'].min()),  # valor mínimo de precipitación
+    max_value=int(df['Precipitacion'].max()),  # valor máximo de precipitación
+    value=(int(df['Precipitacion'].min()), int(df['Precipitacion'].max())),  # valores por defecto
+    step=1  # paso de 1 unidad
 )
 
 # Filtrar los datos según los filtros seleccionados
@@ -101,8 +85,8 @@ gdf_filtrado = gdf[
     (gdf['Tipo_Vegetacion'] == tipo_vegetacion_filtro) &
     (gdf['Altitud'] >= altitud_min) & 
     (gdf['Altitud'] <= altitud_max) &
-    (gdf['Precipitacion'] >= precipitacion_min) & 
-    (gdf['Precipitacion'] <= precipitacion_max)
+    (gdf['Precipitacion'] >= precipitacion_rango[0]) & 
+    (gdf['Precipitacion'] <= precipitacion_rango[1])
 ]
 
 # Mostrar el mapa de las zonas deforestadas filtradas
@@ -120,5 +104,6 @@ st.write(f"Tasa de deforestación promedio: {tasa_deforestacion:.2f} %")
 # Mostrar estadísticas de los puntos filtrados
 st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
+
 
 
