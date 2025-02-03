@@ -44,6 +44,11 @@ amazonas_dataframe = mundo_dataframe[mundo_dataframe['NAME'].isin(['Brazil', 'Co
 
 # Función para graficar el mapa
 def graficar_mapa(gdf_filtrado):
+    # Comprobar si el DataFrame filtrado tiene datos
+    if gdf_filtrado.empty:
+        st.warning("No hay datos para mostrar con los filtros seleccionados.")
+        return
+    
     fig, ax = plt.subplots(figsize=(12, 10))
     amazonas_dataframe.boundary.plot(ax=ax, linewidth=2, color='black')
     gdf_filtrado.plot(ax=ax, marker='x', color='red', markersize=10, alpha=0.7, label='Áreas Deforestadas')
@@ -59,45 +64,4 @@ def graficar_mapa(gdf_filtrado):
 st.title("Análisis de la Deforestación")
 st.markdown("""
 Este análisis permite visualizar las áreas deforestadas en el Amazonas y aplicar filtros por tipo de vegetación, altitud y precipitación. 
-También podrás ver estadísticas de la deforestación.
-""")
-
-# Filtros interactivos
-tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", df['Tipo_Vegetacion'].unique())
-
-# Ahora usando valores corregidos para la altitud
-altitud_min = st.slider("Seleccionar altitud mínima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=0)
-altitud_max = st.slider("Seleccionar altitud máxima", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=df['Altitud'].max())
-
-# Filtros para precipitación
-precipitacion_min = st.slider("Seleccionar precipitación mínima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=df['Precipitacion'].min())
-precipitacion_max = st.slider("Seleccionar precipitación máxima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=df['Precipitacion'].max())
-
-# Filtrar los datos según los filtros seleccionados
-gdf_filtrado = gdf[
-    (gdf['Tipo_Vegetacion'] == tipo_vegetacion_filtro) &
-    (gdf['Altitud'] >= altitud_min) & 
-    (gdf['Altitud'] <= altitud_max) &
-    (gdf['Precipitacion'] >= precipitacion_min) & 
-    (gdf['Precipitacion'] <= precipitacion_max)
-]
-
-# Mostrar el mapa de las zonas deforestadas filtradas
-graficar_mapa(gdf_filtrado)
-
-# Análisis de superficie deforestada y tasas
-superficie_deforestada = gdf_filtrado['Superficie_Deforestada'].sum()
-tasa_deforestacion = gdf_filtrado['Tasa_Deforestacion'].mean()
-
-# Mostrar los análisis de datos
-st.subheader("Análisis de datos")
-st.write(f"Superficie deforestada total (en hectáreas): {superficie_deforestada}")
-st.write(f"Tasa de deforestación promedio: {tasa_deforestacion:.2f} %")
-
-# Mostrar estadísticas de los puntos filtrados
-st.subheader("Estadísticas de las áreas deforestadas filtradas")
-st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
-
-
-
-
+También podrás 
