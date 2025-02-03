@@ -32,6 +32,8 @@ fillna(df[columnas_numericas].mean())
 # Rellenar la columna categórica con el valor más frecuente
 df['Tipo_Vegetacion'] = df['Tipo_Vegetacion'].\
 fillna(df['Tipo_Vegetacion'].mode()[0])
+
+st.write(df.isnull().sum())
 # Convertir el DataFrame de deforestación en un GeoDataFrame
 gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['Longitud'], df['Latitud']))
 
