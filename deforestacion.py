@@ -66,7 +66,8 @@ Este análisis permite visualizar las áreas deforestadas en el Amazonas y aplic
 También podrás ver estadísticas de la deforestación.
 """)
 
-# Filtros interactivos para altitud y precipitación
+# Filtros interactivos
+tipo_vegetacion = st.selectbox("Seleccionar tipo de vegetación", options=df['Tipo_Vegetacion'].unique())
 altitud_slider = st.slider("Seleccionar rango de altitud", min_value=df['Altitud'].min(), max_value=df['Altitud'].max(), value=(df['Altitud'].min(), df['Altitud'].max()))
 precipitacion_slider = st.slider("Seleccionar rango de precipitación", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=(df['Precipitacion'].min(), df['Precipitacion'].max()))
 
@@ -75,7 +76,8 @@ gdf_filtrado = gdf[
     (gdf['Altitud'] >= altitud_slider[0]) & 
     (gdf['Altitud'] <= altitud_slider[1]) &
     (gdf['Precipitacion'] >= precipitacion_slider[0]) & 
-    (gdf['Precipitacion'] <= precipitacion_slider[1])
+    (gdf['Precipitacion'] <= precipitacion_slider[1]) &
+    (gdf['Tipo_Vegetacion'] == tipo_vegetacion)
 ]
 
 # Mostrar el mapa de las zonas deforestadas filtradas
@@ -93,4 +95,5 @@ st.write(f"Tasa de deforestación promedio: {tasa_deforestacion:.2f} %")
 # Mostrar estadísticas de los puntos filtrados
 st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
+
 
