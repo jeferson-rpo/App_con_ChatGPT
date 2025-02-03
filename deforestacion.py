@@ -35,13 +35,12 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
     if not gdf_fechas.empty:
         gdf[gdf_fechas.columns] = gdf_fechas.fillna(pd.to_datetime('1970-01-01'))  # Rellenar con fecha por defecto
 
-    # Limpiar las columnas de texto
+    # Limpiar las columnas de texto sin usar lambda ni ciclos for
     gdf_texto = gdf.select_dtypes(include=['object'])
     if not gdf_texto.empty:
-        # Para cada columna de texto, usamos el valor más frecuente
-        for col in gdf_texto.columns:
-            valor_frecuente = gdf[col].mode().iloc[0]  # Obtener el valor más frecuente
-            gdf[col] = gdf[col].fillna(valor_frecuente)  # Rellenar NaN con el valor más frecuente
+        # Obtener el valor más frecuente por cada columna de texto
+        valores_frecuentes = gdf_texto.mode().iloc[0]
+        gdf[gdf_texto.columns] = gdf_texto.fillna(valores_frecuentes)  # Rellenar NaN con el valor más frecuente
 
     # Asegurarse de que los tipos de datos sean coherentes
     gdf = gdf.convert_dtypes()
