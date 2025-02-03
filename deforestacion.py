@@ -14,8 +14,7 @@ try:
 except:
     gdf = pd.DataFrame()
 
-# Realizar la interpolación en las columnas de interés
-gdf[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']] = gdf[['Latitud', 'Longitud', 'Altitud', 'Precipitacion']].interpolate()
+
 
 # Mostrar los primeros registros para verificar la carga de datos
 st.write(gdf.head())
