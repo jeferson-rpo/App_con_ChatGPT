@@ -33,7 +33,8 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
     gdf_fechas = gdf.select_dtypes(include=['object'])
     gdf_fechas = gdf_fechas.apply(pd.to_datetime, errors='coerce')  # Convertir a datetime, forzando errores a NaT
     if not gdf_fechas.empty:
-        gdf[gdf_fechas.columns] = gdf_fechas.fillna(pd.to_datetime('1970-01-01'))  # Rellenar con fecha por defecto
+        fecha_promedio = gdf_fechas.mean()  # Calcular el promedio de las fechas
+        gdf[gdf_fechas.columns] = gdf_fechas.fillna(fecha_promedio)  # Rellenar con el promedio
 
     # Limpiar las columnas de texto sin usar lambda ni ciclos for
     gdf_texto = gdf.select_dtypes(include=['object'])
