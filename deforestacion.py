@@ -68,7 +68,7 @@ amazonas_dataframe = mundo_dataframe[mundo_dataframe['NAME'].isin(['Brazil', 'Co
 def graficar_mapa(gdf_filtrado):
     fig, ax = plt.subplots(figsize=(12, 10))
     amazonas_dataframe.boundary.plot(ax=ax, linewidth=2, color='black')
-    gdf_filtrado.plot(ax=ax, marker='x', color='red', markersize=15, alpha=0.7, label='Áreas Deforestadas')  # Aumenté el tamaño de las "x"
+    gdf_filtrado.plot(ax=ax, marker='x', color='red', markersize=30, alpha=0.7, label='Áreas Deforestadas')  # Aumenté el tamaño de las "x"
     ax.set_xlim(-80, -34)
     ax.set_ylim(-20, 10)
     ax.set_title("Zonas Deforestadas Filtradas")
