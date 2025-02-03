@@ -11,7 +11,7 @@ if opcion == "Cargar archivo desde URL":
     if url:
         gdf = pd.read_csv(url)  # Cargar el archivo CSV desde la URL
         st.write("Datos cargados desde la URL:", gdf)
-        
+
 # Si elige "Subir archivo"
 if opcion == "Subir archivo":
     archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
@@ -23,27 +23,30 @@ if opcion == "Subir archivo":
 if 'gdf' in locals():  # Verificar si se cargaron datos
     # Identificar tipo de datos
     tipos_columnas = gdf.dtypes
-
-    # Limpiar el DataFrame
+    st.write("Tipos de datos de las columnas:", tipos_columnas)
+    
     # Interpolación para columnas numéricas (como latitudes y fechas)
     gdf_numéricas = gdf.select_dtypes(include=['float64', 'int64'])  # Columnas numéricas
     gdf_numéricas = gdf_numéricas.interpolate()  # Interpolación para numéricas
-    gdf_numéricas = gdf_numéricas.convert_dtypes()  # Convertir a tipos coherentes
-
+    
     # Interpolación para fechas
     gdf_fechas = gdf.select_dtypes(include=['object'])  # Se seleccionan columnas de fechas (de tipo objeto)
     gdf_fechas = gdf_fechas.apply(pd.to_datetime, errors='coerce')  # Convertir a datetime, manejando errores
     gdf_fechas = gdf_fechas.interpolate()  # Interpolación para fechas
-    gdf_fechas = gdf_fechas.convert_dtypes()  # Convertir a tipos coherentes
 
     # Rellenar NaN en texto con el valor más frecuente
     gdf_texto = gdf.select_dtypes(include=['object'])  # Columnas de tipo texto
     frecuente = gdf_texto.mode().iloc[0]  # Obtener el valor más frecuente en cada columna de texto
     gdf_texto = gdf_texto.fillna(frecuente)  # Rellenar NaN con el valor más frecuente
+
+    # Asegurar que todos los DataFrames tengan tipos coherentes
+    gdf_numéricas = gdf_numéricas.convert_dtypes()  # Convertir a tipos coherentes
+    gdf_fechas = gdf_fechas.convert_dtypes()  # Convertir a tipos coherentes
     gdf_texto = gdf_texto.convert_dtypes()  # Convertir a tipos coherentes
 
-    # Combinar todos los DataFrames limpios
-    gdf_limpio = gdf_numéricas.join(gdf_fechas, how='left').join(gdf_texto, how='left')
+    # Concatenar todos los DataFrames limpios
+    gdf_limpio = pd.concat([gdf_numéricas, gdf_fechas, gdf_texto], axis=1)
 
     # Mostrar el DataFrame limpio
     st.write("Archivo limpio:", gdf_limpio)
+
