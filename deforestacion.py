@@ -1,28 +1,50 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 
-# Cargar archivo CSV desde el usuario (usando Streamlit)
-uploaded_file = st.file_uploader("Elige un archivo CSV", type=["csv"])
+# Opción para que el usuario ingrese una URL o suba un archivo
+opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
 
-if uploaded_file is not None:
-    # Leer el archivo CSV
-    df = pd.read_csv(uploaded_file)
+# Si elige "Cargar archivo desde URL"
+if opcion == "Cargar archivo desde URL":
+    url = st.text_input("Introduce la URL del archivo CSV", 
+                       "https://raw.githubusercontent.com/gabrielawad/programacion-para-ingenieria/refs/heads/main/archivos-datos/aplicaciones/deforestacion.csv")
+    if url:
+        gdf = pd.read_csv(url)  # Cargar el archivo CSV desde la URL
+        st.write("Datos cargados desde la URL:", gdf)
 
-    # 1. Convertir columnas de fecha a formato datetime
-    fechas = df.select_dtypes(include=['object'])  # Seleccionamos las columnas de tipo 'object' (posiblemente fechas)
-    df[fechas.columns] = fechas.apply(pd.to_datetime, errors='coerce')  # Convertimos esas columnas a formato datetime
+# Si elige "Subir archivo"
+if opcion == "Subir archivo":
+    archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+    if archivo:
+        gdf = pd.read_csv(archivo)  # Cargar el archivo CSV
+        st.write("Datos cargados:", gdf)
 
-    # 2. Interpolación lineal para todas las columnas numéricas y de fechas
-    df = df.apply(pd.to_numeric, errors='coerce')  # Convertimos todas las columnas posibles a tipo numérico
-    df = df.interpolate()  # Realizamos la interpolación de los NaN para todas las columnas numéricas
+# Limpiar los datos si se cargaron
+if 'gdf' in locals():  # Verificar si se cargaron datos
+    # Identificar los NaN en el DataFrame
+    st.write("NaN en las columnas:", gdf.isna().sum())
 
-    # 3. Rellenar NaN en columnas numéricas con la media de cada columna
-    numericas = df.select_dtypes(include=['float64', 'int64'])  # Seleccionamos las columnas numéricas
-    df[numericas.columns] = numericas.fillna(numericas.mean())  # Rellenamos los NaN con la media de cada columna numérica
+    # Limpiar las columnas numéricas
+    gdf_numéricas = gdf.select_dtypes(include=['float64', 'int64'])
+    if not gdf_numéricas.empty:
+        gdf[gdf_numéricas.columns] = gdf_numéricas.fillna(gdf_numéricas.mean())  # Rellenar NaN con la media
 
-    # 4. Rellenar NaN en columnas categóricas con el valor más frecuente
-    categoricas = df.select_dtypes(include=['object'])  # Seleccionamos las columnas de tipo 'object' (categóricas)
-    df[categoricas.columns] = categoricas.apply(lambda x: x.fillna(x.mode()[0]), axis=0)
+    # Limpiar las columnas de fechas
+    gdf_fechas = gdf.select_dtypes(include=['object'])
+    gdf_fechas = gdf_fechas.apply(pd.to_datetime, errors='coerce')  # Convertir a datetime, forzando errores a NaT
+    if not gdf_fechas.empty:
+        gdf[gdf_fechas.columns] = gdf_fechas.fillna(pd.to_datetime('1970-01-01'))  # Rellenar con fecha por defecto
+
+    # Limpiar las columnas de texto
+    gdf_texto = gdf.select_dtypes(include=['object'])
+    if not gdf_texto.empty:
+        # Para cada columna de texto, usamos el valor más frecuente
+        for col in gdf_texto.columns:
+            valor_frecuente = gdf[col].mode().iloc[0]  # Obtener el valor más frecuente
+            gdf[col] = gdf[col].fillna(valor_frecuente)  # Rellenar NaN con el valor más frecuente
+
+    # Asegurarse de que los tipos de datos sean coherentes
+    gdf = gdf.convert_dtypes()
 
     # Mostrar el DataFrame limpio
-    st.write("Archivo limpio:", df)
+    st.write("Archivo limpio:", gdf)
