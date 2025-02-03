@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import geopandas as gpd
+import matplotlib.pyplot as plt
 
 # Opción para que el usuario ingrese una URL o suba un archivo
 opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
