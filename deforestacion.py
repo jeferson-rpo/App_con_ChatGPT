@@ -3,7 +3,6 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
-
 #ruta
 ruta="https://raw.githubusercontent.com/gabrielawad/programacion-para-\
 ingenieria/refs/heads/main/archivos-datos/aplicaciones/deforestacion.\
@@ -97,6 +96,7 @@ precipitacion_max = st.slider(
     value=int(df['Precipitacion'].max())
 )
 
+# Filtrar los datos según los filtros seleccionados
 gdf_filtrado = gdf[
     (gdf['Tipo_Vegetacion'] == tipo_vegetacion_filtro) &
     (gdf['Altitud'] >= altitud_min) & 
@@ -120,4 +120,5 @@ st.write(f"Tasa de deforestación promedio: {tasa_deforestacion:.2f} %")
 # Mostrar estadísticas de los puntos filtrados
 st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
+
 
