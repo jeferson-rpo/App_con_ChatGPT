@@ -97,7 +97,6 @@ precipitacion_max = st.slider(
     value=int(df['Precipitacion'].max())
 )
 
-# Filtrar los datos según los filtros seleccionados
 gdf_filtrado = gdf[
     (gdf['Tipo_Vegetacion'] == tipo_vegetacion_filtro) &
     (gdf['Altitud'] >= altitud_min) & 
@@ -105,6 +104,12 @@ gdf_filtrado = gdf[
     (gdf['Precipitacion'] >= precipitacion_min) & 
     (gdf['Precipitacion'] <= precipitacion_max)
 ]
+
+# Eliminar filas con valores NaN o infinitos en las coordenadas
+gdf_filtrado = gdf_filtrado[gdf_filtrado.isfinite().all(axis=1)]
+
+# Asegurarse de que no hay valores NaN en las columnas que se van a graficar
+gdf_filtrado = gdf_filtrado.dropna(subset=['Latitud', 'Longitud'])
 
 # Mostrar el mapa de las zonas deforestadas filtradas
 graficar_mapa(gdf_filtrado)
