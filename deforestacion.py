@@ -49,11 +49,15 @@ if 'gdf' in locals():  # Verificar si se cargaron datos
     # Mostrar el DataFrame limpio
     st.write("Datos limpiados:", gdf)
 
-# Convertir el DataFrame de deforestación en un GeoDataFrame
-gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['Longitud'], df['Latitud']))
+    # Convertir las columnas de Latitud y Longitud a numéricas, si es necesario
+    gdf['Longitud'] = pd.to_numeric(gdf['Longitud'], errors='coerce')
+    gdf['Latitud'] = pd.to_numeric(gdf['Latitud'], errors='coerce')
 
-# Definir sistema de coordenadas (WGS84)
-gdf.set_crs(epsg=4326, inplace=True)
+    # Convertir el DataFrame de deforestación en un GeoDataFrame
+    gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf['Longitud'], gdf['Latitud']))
+
+    # Definir sistema de coordenadas (WGS84)
+    gdf.set_crs(epsg=4326, inplace=True)
 
 # Cargar los datos del mapa de los países
 ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
@@ -81,9 +85,9 @@ También podrás ver estadísticas de la deforestación.
 """)
 
 # Filtros interactivos
-tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", df['Tipo_Vegetacion'].unique())
-altitud_slider = st.slider("Seleccionar altitud", min_value=int(df['Altitud'].min()), max_value=int(df['Altitud'].max()), value=(int(df['Altitud'].min()), int(df['Altitud'].max())))
-precipitacion_slider = st.slider("Seleccionar precipitación", min_value=int(df['Precipitacion'].min()), max_value=int(df['Precipitacion'].max()), value=(int(df['Precipitacion'].min()), int(df['Precipitacion'].max())))
+tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", gdf['Tipo_Vegetacion'].unique())
+altitud_slider = st.slider("Seleccionar altitud", min_value=int(gdf['Altitud'].min()), max_value=int(gdf['Altitud'].max()), value=(int(gdf['Altitud'].min()), int(gdf['Altitud'].max())))
+precipitacion_slider = st.slider("Seleccionar precipitación", min_value=int(gdf['Precipitacion'].min()), max_value=int(gdf['Precipitacion'].max()), value=(int(gdf['Precipitacion'].min()), int(gdf['Precipitacion'].max())))
 
 # Filtrar los datos según los filtros seleccionados
 gdf_filtrado = gdf[
@@ -134,4 +138,3 @@ st.write(promedio_temperatura_por_vegetacion)
 # Mostrar estadísticas de los puntos filtrados
 st.subheader("Estadísticas de las áreas deforestadas filtradas")
 st.write(gdf_filtrado[['Latitud', 'Longitud']].describe())
-
