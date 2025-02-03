@@ -70,28 +70,25 @@ También podrás ver estadísticas de la deforestación.
 # Filtros interactivos
 tipo_vegetacion_filtro = st.selectbox("Seleccionar tipo de vegetación", df['Tipo_Vegetacion'].unique())
 
-# Filtro de altitud
-altitud_min = st.slider("Seleccionar altitud mínima", 
-                        min_value=int(df['Altitud'].min()), 
-                        max_value=int(df['Altitud'].max()), 
-                        value=int(df['Altitud'].min()))
+# Filtro de altitud (un solo control para el rango de altitud)
+altitud_rango = st.slider("Seleccionar rango de altitud", 
+                          min_value=int(df['Altitud'].min()), 
+                          max_value=int(df['Altitud'].max()), 
+                          value=(int(df['Altitud'].min()), int(df['Altitud'].max())))
 
-altitud_max = st.slider("Seleccionar altitud máxima", 
-                        min_value=int(df['Altitud'].min()), 
-                        max_value=int(df['Altitud'].max()), 
-                        value=int(df['Altitud'].max()))
-
-# Filtros para precipitación
-precipitacion_min = st.slider("Seleccionar precipitación mínima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=df['Precipitacion'].min())
-precipitacion_max = st.slider("Seleccionar precipitación máxima", min_value=df['Precipitacion'].min(), max_value=df['Precipitacion'].max(), value=df['Precipitacion'].max())
+# Filtro de precipitación (un solo control para el rango de precipitación)
+precipitacion_rango = st.slider("Seleccionar rango de precipitación", 
+                                min_value=int(df['Precipitacion'].min()), 
+                                max_value=int(df['Precipitacion'].max()), 
+                                value=(int(df['Precipitacion'].min()), int(df['Precipitacion'].max())))
 
 # Filtrar los datos según los filtros seleccionados
 gdf_filtrado = gdf[
     (gdf['Tipo_Vegetacion'] == tipo_vegetacion_filtro) &
-    (gdf['Altitud'] >= altitud_min) & 
-    (gdf['Altitud'] <= altitud_max) &
-    (gdf['Precipitacion'] >= precipitacion_min) & 
-    (gdf['Precipitacion'] <= precipitacion_max)
+    (gdf['Altitud'] >= altitud_rango[0]) & 
+    (gdf['Altitud'] <= altitud_rango[1]) &
+    (gdf['Precipitacion'] >= precipitacion_rango[0]) & 
+    (gdf['Precipitacion'] <= precipitacion_rango[1])
 ]
 
 # Comprobar si el DataFrame filtrado está vacío antes de graficar
