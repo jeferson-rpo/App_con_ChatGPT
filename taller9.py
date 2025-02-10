@@ -136,8 +136,7 @@ def mostrar_mapas(gdf):
 
 
 
-def mostrar_mapa_interactivo(gdf_filtrado, world):
-   
+
 
 
 
