@@ -57,10 +57,15 @@ if 'gdf' in locals():
     frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map_inv)
 
-    # Imputar 'Historial_Compras' usando la relación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
-    gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(
-        gdf['Latitud'] * 0.2 + gdf['Longitud'] * 0.3
-    )
+    # Calcular correlación de 'Historial_Compras' con 'Latitud' y 'Longitud'
+    correlation_latitud_historial = gdf[['Latitud', 'Historial_Compras']].corr().iloc[0, 1]
+    correlation_longitud_historial = gdf[['Longitud', 'Historial_Compras']].corr().iloc[0, 1]
+    
+    # Establecer un umbral para imputar según la correlación
+    umbral_historial = 0.7  # Ajusta este umbral según tus necesidades
+
+    # Imputar 'Historial_Compras' según la correlación con 'Latitud' y 'Longitud'
+    gdf['Historial_Compras'] = gdf.apply(lambda row: row['Latitud'] * correlation_latitud_historial + row['Longitud'] * correlation_longitud_historial if abs(correlation_latitud_historial) > umbral_historial and pd.isna(row['Historial_Compras']) else row['Historial_Compras'], axis=1)
 
     # Imputar 'Nombre' con el nombre más frecuente
     nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
