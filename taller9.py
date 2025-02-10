@@ -2,98 +2,75 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Función para cargar y limpiar los datos
-def cargar_y_limpiar_datos(url=None, archivo=None):
-    if url:
-        df = pd.read_csv(url)
-    elif archivo:
-        df = pd.read_csv(archivo)
-    else:
-        return None
+# Opción para cargar datos
+def cargar_datos():
+    opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
+    if opcion == "Cargar archivo desde URL":
+        url = st.text_input("Introduce la URL del archivo CSV",
+                            "https://github.com/gabrielawad/programacion-para-ingenieria/raw/refs/heads/main/archivos-datos/aplicaciones/analisis_clientes.csv")
+        if url:
+            return pd.read_csv(url)
+    elif opcion == "Subir archivo":
+        archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+        if archivo:
+            return pd.read_csv(archivo)
+    return None
 
-    # Mostrar datos cargados
-    st.write("### Datos cargados y depurados")
+# Función para depurar datos
+def depurar_datos(gdf):
+    gdf = gdf.copy()
     
-    # Rellenar NaN en 'Ingreso_Anual_USD'
-    df['Ingreso_Anual_USD'].fillna(df['Ingreso_Anual_USD'].mean(), inplace=True)
+    # Identificar y rellenar NaN
+    gdf['Ingreso_Anual_USD'].fillna(gdf['Ingreso_Anual_USD'].mean(), inplace=True)
+    gdf['Edad'].fillna(round(gdf['Edad'].mean()), inplace=True)
+    gdf['Historial_Compras'].fillna(round(gdf['Historial_Compras'].mean()), inplace=True)
+    gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1], inplace=True)
+    gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1], inplace=True)
+    gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1, inplace=True)
+    gdf['Nombre'].fillna(gdf['Nombre'].mode()[0], inplace=True)
+    gdf['Género'].fillna(gdf['Género'].mode()[0], inplace=True)
     
-    # Rellenar NaN en 'Edad'
-    df['Edad'].fillna(round(df['Edad'].mean()), inplace=True)
-    
-    # Rellenar NaN en 'Historial_Compras'
-    df['Historial_Compras'].fillna(round(df['Historial_Compras'].mean()), inplace=True)
-    
-    # Rellenar NaN en 'Latitud' y 'Longitud'
-    df['Latitud'].fillna(df['Ingreso_Anual_USD'].corr(df['Latitud']) * df['Ingreso_Anual_USD'], inplace=True)
-    df['Longitud'].fillna(df['Ingreso_Anual_USD'].corr(df['Longitud']) * df['Ingreso_Anual_USD'], inplace=True)
-    
-    # Rellenar NaN en 'Frecuencia_Compra' usando la relación con 'Edad'
-    df['Frecuencia_Compra'].fillna(df['Edad'] * 0.1, inplace=True)
-    
-    # Imputar valores más frecuentes en 'Nombre' y 'Género'
-    df['Nombre'].fillna(df['Nombre'].mode()[0], inplace=True)
-    df['Género'].fillna(df['Género'].mode()[0], inplace=True)
-    
-    # Convertir 'Frecuencia_Compra' a categorías
+    # Limpiar valores en 'Frecuencia_Compra'
     frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
-    df['Frecuencia_Compra'] = df['Frecuencia_Compra'].map(frec_map).fillna(1).map({0: "Baja", 1: "Media", 2: "Alta"})
+    frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map).fillna(1).map(frec_map_inv)
     
-    st.write(df)
-    return df
+    return gdf
 
 # Función para graficar correlaciones
-def graficar_correlaciones(df):
-    st.write("### Análisis de Correlaciones")
+def graficar_correlaciones(gdf):
+    fig, axes = plt.subplots(3, 1, figsize=(10, 12))
     
     # Correlación global
-    correlation_global = df[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    correlation_global = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    axes[0].bar('Global', correlation_global, color='b')
+    axes[0].set_title("Correlación Global entre Edad e Ingreso Anual USD")
     
     # Correlación por Género
-    correlation_por_genero = df.groupby('Género')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
+    correlation_por_genero = gdf.groupby('Género')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
+    axes[1].bar(correlation_por_genero.index, correlation_por_genero.values, color='g')
+    axes[1].set_title("Correlación entre Edad e Ingreso Anual USD por Género")
     
     # Correlación por Frecuencia de Compra
-    correlation_por_frecuencia = df.groupby('Frecuencia_Compra')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
-    
-    fig, axs = plt.subplots(3, 1, figsize=(8, 12))
-    
-    # Gráfico global
-    axs[0].bar(['Global'], [correlation_global], color='b')
-    axs[0].set_title("Correlación Global")
-    axs[0].set_ylabel("Correlación")
-    
-    # Gráfico por Género
-    axs[1].bar(correlation_por_genero.index, correlation_por_genero.values, color='g')
-    axs[1].set_title("Correlación por Género")
-    axs[1].set_ylabel("Correlación")
-    
-    # Gráfico por Frecuencia de Compra
-    axs[2].bar(correlation_por_frecuencia.index, correlation_por_frecuencia.values, color='r')
-    axs[2].set_title("Correlación por Frecuencia de Compra")
-    axs[2].set_ylabel("Correlación")
+    correlation_por_frecuencia = gdf.groupby('Frecuencia_Compra')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
+    axes[2].bar(correlation_por_frecuencia.index, correlation_por_frecuencia.values, color='r')
+    axes[2].set_title("Correlación entre Edad e Ingreso Anual USD por Frecuencia de Compra")
     
     plt.tight_layout()
     st.pyplot(fig)
 
-# Streamlit App
-st.title("Análisis de Datos de Clientes")
-
-# Opción para cargar archivo o URL
-opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
-
-gdf = None
-
-if opcion == "Cargar archivo desde URL":
-    url = st.text_input("Introduce la URL del archivo CSV",
-                        "https://github.com/gabrielawad/programacion-para-ingenieria/raw/refs/heads/main/archivos-datos/aplicaciones/analisis_clientes.csv")
-    if url:
-        gdf = cargar_y_limpiar_datos(url=url)
-
-if opcion == "Subir archivo":
-    archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
-    if archivo:
-        gdf = cargar_y_limpiar_datos(archivo=archivo)
-
-# Barra lateral para mostrar correlaciones
+# Interfaz principal
+gdf = cargar_datos()
 if gdf is not None:
-    if st.sidebar.button("Mostrar Análisis de Correlaciones"):
-        graficar_correlaciones(gdf)
+    st.write("Datos cargados correctamente.")
+    
+    # Barra lateral con opciones
+    with st.sidebar:
+        if st.button("Depurar Datos"):
+            gdf = depurar_datos(gdf)
+            st.write("### Datos después de la limpieza:")
+            st.write(gdf)
+        
+        if st.button("Mostrar Correlaciones"):
+            gdf = depurar_datos(gdf)
+            graficar_correlaciones(gdf)
