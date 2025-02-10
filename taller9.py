@@ -32,26 +32,19 @@ if 'gdf' in locals():
     # Rellenar NaN en 'Edad' utilizando la correlación con 'Ingreso_Anual_USD'
     gdf['Edad'] = gdf['Edad'].fillna(gdf['Ingreso_Anual_USD'] * correlation_edad_ingreso)
 
-    # Calcular la correlación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
+    # Imputar 'Ingreso_Anual_USD' con el promedio si tiene NaN
+    ingreso_promedio = gdf['Ingreso_Anual_USD'].mean()
+    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(ingreso_promedio)
+
+    # Ahora, con 'Ingreso_Anual_USD' imputado, calcular la correlación con Latitud y Longitud
     correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
     correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
 
-    # Seleccionar la mayor correlación
-    max_correlation = max(correlation_latitud, correlation_longitud)
+    # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
+    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_latitud)
 
-    # Si la correlación más alta es mayor a 0.7, se usa esa correlación para imputar 'Ingreso_Anual_USD'
-    if max_correlation > 0.7:
-        if correlation_latitud == max_correlation:
-            gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(
-                gdf['Latitud'] * correlation_latitud
-            )
-        else:
-            gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(
-                gdf['Longitud'] * correlation_longitud
-            )
-    else:
-        # Si la correlación no es suficiente, se imputa con la media
-        gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(gdf['Ingreso_Anual_USD'].mean())
+    # Rellenar NaN en 'Longitud' utilizando la correlación con 'Ingreso_Anual_USD'
+    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
 
     # Imputar 'Frecuencia_Compra' usando la relación con 'Edad'
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1)
