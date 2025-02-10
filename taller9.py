@@ -134,19 +134,43 @@ def mostrar_mapa_deforestacion():
     """
     Muestra un mapa de deforestación basado en variables de tipo de vegetación, altitud y precipitación.
     """
-    st.write("### Mapa Interactivo de Deforestación")
-    archivo = st.file_uploader("Sube un archivo CSV de deforestación", type=["csv"])
-    
-    if archivo:
-        df = pd.read_csv(archivo)
-        df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df["Longitud"], df["Latitud"]))
+    """
+    Muestra un mapa filtrado según las selecciones del usuario.
+    Permite elegir hasta cuatro variables con su respectivo rango o categoría.
+    """
+    st.sidebar.write("### Selecciona los filtros para el mapa")
 
-        fig, ax = plt.subplots(figsize=(10, 6))
-        df.plot(ax=ax, marker='o', color='green', markersize=10, alpha=0.5)
-        ax.set_xlim(df["Longitud"].min() - 1, df["Longitud"].max() + 1)
-        ax.set_ylim(df["Latitud"].min() - 1, df["Latitud"].max() + 1)
-        ax.set_title("Mapa de Deforestación")
-        st.pyplot(fig)
+    # Filtros para Género y Frecuencia de Compra (listas de selección)
+    generos_seleccionados = st.sidebar.multiselect("Selecciona Género", gdf["Género"].unique(), default=gdf["Género"].unique())
+    frecuencia_seleccionada = st.sidebar.multiselect("Selecciona Frecuencia de Compra", gdf["Frecuencia_Compra"].unique(), default=gdf["Frecuencia_Compra"].unique())
+
+    # Filtros de rango para Edad e Ingreso Anual
+    min_edad, max_edad = st.sidebar.slider("Rango de Edad", int(gdf["Edad"].min()), int(gdf["Edad"].max()), (int(gdf["Edad"].min()), int(gdf["Edad"].max())))
+    min_ingreso, max_ingreso = st.sidebar.slider("Rango de Ingreso Anual (USD)", int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max()), (int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max())))
+
+    # Aplicar filtros
+    gdf_filtrado = gdf[
+        (gdf["Género"].isin(generos_seleccionados)) &
+        (gdf["Frecuencia_Compra"].isin(frecuencia_seleccionada)) &
+        (gdf["Edad"].between(min_edad, max_edad)) &
+        (gdf["Ingreso_Anual_USD"].between(min_ingreso, max_ingreso))
+    ]
+
+    if gdf_filtrado.empty:
+        st.warning("No hay datos que coincidan con los filtros seleccionados.")
+        return
+
+    # Convertir a GeoDataFrame
+    gdf_filtrado = gpd.GeoDataFrame(gdf_filtrado, geometry=gpd.points_from_xy(gdf_filtrado["Longitud"], gdf_filtrado["Latitud"]))
+
+    # Graficar mapa
+    fig, ax = plt.subplots(figsize=(10, 6))
+    gdf_filtrado.plot(ax=ax, marker="o", color="blue", markersize=10, alpha=0.6)
+    ax.set_xlim(gdf["Longitud"].min() - 1, gdf["Longitud"].max() + 1)
+    ax.set_ylim(gdf["Latitud"].min() - 1, gdf["Latitud"].max() + 1)
+    ax.set_title("Mapa de Clientes - Filtros Aplicados")
+
+    st.pyplot(fig)
 
 
 # =============================================================================
