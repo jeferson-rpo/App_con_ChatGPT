@@ -127,7 +127,7 @@ def mostrar_mapas(gdf):
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     ax.legend()
-    ax.set_title("Mapa de Calor de Frecuencia de Compra - Centro y Sudamérica")
+    ax.set_title("Mapa de Frecuencia de Compra - Centro y Sudamérica")
     st.pyplot(fig)
 
 
