@@ -26,6 +26,10 @@ if 'gdf' in locals():
     # Identificar los NaN en el DataFrame
     st.write("NaN en las columnas:", gdf.isna().sum())
 
+    # Asignar valores numéricos a 'Frecuencia_Compra'
+    mapping_frecuencia = {'Baja': 0, 'Media': 1, 'Alta': 2}
+    gdf['Frecuencia_Compra_num'] = gdf['Frecuencia_Compra'].map(mapping_frecuencia)
+
     # Calcular la correlación entre 'Edad' e 'Ingreso_Anual_USD'
     correlation_edad_ingreso = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
 
@@ -43,7 +47,11 @@ if 'gdf' in locals():
     gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
 
     # Imputar 'Frecuencia_Compra' usando la relación con 'Edad'
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1)
+    gdf['Frecuencia_Compra_num'] = gdf['Frecuencia_Compra_num'].fillna(gdf['Edad'] * 0.1)
+
+    # Reconvertir la columna 'Frecuencia_Compra_num' a las categorías originales
+    inverse_mapping_frecuencia = {0: 'Baja', 1: 'Media', 2: 'Alta'}
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra_num'].map(inverse_mapping_frecuencia)
 
     # Imputar 'Historial_Compras' usando la relación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
     correlation_latitud_historial = gdf[['Latitud', 'Historial_Compras']].corr().iloc[0, 1]
@@ -69,5 +77,4 @@ if 'gdf' in locals():
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
-
     st.write("NaN en las columnas:", gdf.isna().sum())
