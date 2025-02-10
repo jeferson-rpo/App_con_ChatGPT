@@ -47,19 +47,30 @@ if 'gdf' in locals():
     gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Latitud'].mean())
     gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Longitud'].mean())
 
-    # Calcular correlación de 'Historial_Compras' con 'Latitud' y 'Longitud'
+    # Imputar 'Frecuencia_Compra' utilizando el mapeo
+    frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map)
+
+    # Si hay valores fuera del rango esperado, se puede asignar un valor por defecto (por ejemplo, 'Media')
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(1)
+
+    # Transformar los valores numéricos de vuelta a sus nombres correspondientes
+    frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map_inv)
+
+    # Correlación entre 'Latitud', 'Longitud' e 'Historial_Compras'
     correlation_latitud_historial = gdf[['Latitud', 'Historial_Compras']].corr().iloc[0, 1]
     correlation_longitud_historial = gdf[['Longitud', 'Historial_Compras']].corr().iloc[0, 1]
 
     st.write(f"Correlación entre Latitud y Historial_Compras: {correlation_latitud_historial}")
     st.write(f"Correlación entre Longitud y Historial_Compras: {correlation_longitud_historial}")
 
-    # Establecer umbral para imputar según la correlación
-    umbral_historial = 0.7  # Ajusta este umbral según tus necesidades
-
-    # Imputar 'Historial_Compras' según la correlación con 'Latitud' y 'Longitud'
+    # Imputar 'Historial_Compras' utilizando la misma lógica que para 'Frecuencia_Compra'
+    gdf['Historial_Compras'] = gdf['Historial_Compras'].map(lambda x: 1 if pd.isna(x) else x)  # Default value for NaN
+    
+    # Reemplazar valores NaN de 'Historial_Compras' con los valores calculados a partir de las correlaciones
     gdf['Historial_Compras'] = gdf.apply(lambda row: row['Latitud'] * correlation_latitud_historial + row['Longitud'] * correlation_longitud_historial
-                                         if abs(correlation_latitud_historial) > umbral_historial and pd.isna(row['Historial_Compras']) else row['Historial_Compras'], axis=1)
+                                          if pd.isna(row['Historial_Compras']) and abs(correlation_latitud_historial) > 0.7 else row['Historial_Compras'], axis=1)
 
     # Imputar 'Nombre' con el nombre más frecuente
     nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
