@@ -44,15 +44,23 @@ if 'gdf' in locals():
 
     # Solo realizamos la imputación si la correlación supera el umbral
     if abs(correlation_edad_historial) > umbral_correlacion:
-        # Creamos una máscara para los NaN de 'Historial_Compras'
+        # Crear una máscara para las filas con NaN en 'Historial_Compras'
         mask_na = gdf['Historial_Compras'].isna()
 
-        # Ahora, asignamos los valores de 'Historial_Compras' según las edades similares
-        edad_correlacionada = gdf.loc[mask_na, 'Edad']
-        historial_correlacionado = gdf.loc[gdf['Edad'].isin(edad_correlacionada), 'Historial_Compras']
+        # Crear un DataFrame temporal solo con las filas que no tienen NaN en 'Historial_Compras'
+        gdf_no_na = gdf.dropna(subset=['Historial_Compras'])
 
-        # Rellenamos los valores NaN en 'Historial_Compras' con los valores de historial correlacionado
-        gdf.loc[mask_na, 'Historial_Compras'] = historial_correlacionado
+        # Se crea una diferencia de edades entre la fila que tiene NaN y todas las demás
+        diferencia_edades = np.abs(gdf_no_na['Edad'].values[:, np.newaxis] - gdf.loc[mask_na, 'Edad'].values)
+
+        # Calculamos la diferencia mínima de edades
+        min_diferencia = diferencia_edades.min(axis=0)
+
+        # Encontramos los índices de las filas con la menor diferencia
+        idx_min_diferencia = diferencia_edades.argmin(axis=0)
+
+        # Ahora asignamos el Historial_Compras de las filas con las edades más cercanas
+        gdf.loc[mask_na, 'Historial_Compras'] = gdf_no_na.iloc[idx_min_diferencia]['Historial_Compras'].values
 
     # Imputar 'Frecuencia_Compra' utilizando el mapeo
     frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
@@ -67,3 +75,4 @@ if 'gdf' in locals():
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
+
