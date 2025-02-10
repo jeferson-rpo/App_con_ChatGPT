@@ -84,8 +84,7 @@ def mostrar_mapas(gdf):
     ]
     world = world[world["NAME"].isin(paises_latam)]
 
-    # Convertir DataFrame en GeoDataFrame
-    gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf["Longitud"], gdf["Latitud"]))
+    
 
     # Ajustar los límites del mapa (aprox. latitudes y longitudes de la región)
     xlim = (-120, -30)
