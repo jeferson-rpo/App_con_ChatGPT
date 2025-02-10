@@ -35,17 +35,16 @@ if 'gdf' in locals():
     edad_mediana = gdf['Edad'].median()
     gdf['Edad'] = gdf['Edad'].fillna(edad_mediana)
 
-    # Correlaciones de 'Edad' y 'Ingreso_Anual_USD'
-    correlation_edad_ingreso = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    st.write(f"Correlación entre Edad e Ingreso_Anual_USD: {correlation_edad_ingreso}")
+    # Correlaciones de 'Edad' y 'Historial_Compras'
+    correlation_edad_historial = gdf[['Edad', 'Historial_Compras']].corr().iloc[0, 1]
+    st.write(f"Correlación entre Edad e Historial_Compras: {correlation_edad_historial}")
 
-    # Imputar 'Edad' según la correlación con 'Ingreso_Anual_USD'
+    # Imputar 'Edad' según la correlación con 'Historial_Compras'
     umbral_correlacion = 0.7  # Umbral para determinar si la correlación es alta
-    gdf['Edad'] = gdf.apply(lambda row: row['Ingreso_Anual_USD'] * correlation_edad_ingreso if abs(correlation_edad_ingreso) > umbral_correlacion and pd.isna(row['Edad']) else row['Edad'], axis=1)
+    gdf['Edad'] = gdf.apply(lambda row: row['Historial_Compras'] * correlation_edad_historial if abs(correlation_edad_historial) > umbral_correlacion and pd.isna(row['Edad']) else row['Edad'], axis=1)
 
-    # Imputar 'Latitud' y 'Longitud' si son NaN con su media
-    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Latitud'].mean())
-    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Longitud'].mean())
+    # Correlación entre 'Edad' e 'Historial_Compras'
+    st.write(f"Correlación actualizada entre Edad e Historial_Compras: {gdf[['Edad', 'Historial_Compras']].corr().iloc[0, 1]}")
 
     # Imputar 'Frecuencia_Compra' utilizando el mapeo
     frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
@@ -58,19 +57,9 @@ if 'gdf' in locals():
     frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map_inv)
 
-    # Correlación entre 'Latitud', 'Longitud' e 'Historial_Compras'
-    correlation_latitud_historial = gdf[['Latitud', 'Historial_Compras']].corr().iloc[0, 1]
-    correlation_longitud_historial = gdf[['Longitud', 'Historial_Compras']].corr().iloc[0, 1]
-
-    st.write(f"Correlación entre Latitud y Historial_Compras: {correlation_latitud_historial}")
-    st.write(f"Correlación entre Longitud y Historial_Compras: {correlation_longitud_historial}")
-
-    # Imputar 'Historial_Compras' utilizando la misma lógica que para 'Frecuencia_Compra'
-    gdf['Historial_Compras'] = gdf['Historial_Compras'].map(lambda x: 1 if pd.isna(x) else x)  # Default value for NaN
-    
     # Reemplazar valores NaN de 'Historial_Compras' con los valores calculados a partir de las correlaciones
-    gdf['Historial_Compras'] = gdf.apply(lambda row: row['Latitud'] * correlation_latitud_historial + row['Longitud'] * correlation_longitud_historial
-                                          if pd.isna(row['Historial_Compras']) and abs(correlation_latitud_historial) > 0.7 else row['Historial_Compras'], axis=1)
+    gdf['Historial_Compras'] = gdf.apply(lambda row: row['Edad'] * correlation_edad_historial 
+                                          if pd.isna(row['Historial_Compras']) and abs(correlation_edad_historial) > umbral_correlacion else row['Historial_Compras'], axis=1)
 
     # Imputar 'Nombre' con el nombre más frecuente
     nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
