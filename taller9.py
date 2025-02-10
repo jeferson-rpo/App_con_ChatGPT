@@ -113,9 +113,7 @@ def mostrar_mapa_deforestacion(gdf):
 st.title("Análisis de Deforestación")
 
 # Cargar los datos desde un CSV depurado (asegúrate de cambiarlo por el tuyo)
-df = pd.read_csv("deforestacion_depurado.csv")
-    else:
-        st.write("No se encontraron coordenadas válidas en los datos.")
+
 
 # =============================================================================
 # Interfaz Principal
