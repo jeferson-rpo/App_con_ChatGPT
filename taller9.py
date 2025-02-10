@@ -26,27 +26,13 @@ if 'gdf' in locals():
     # Identificar los NaN en el DataFrame
     st.write("NaN en las columnas:", gdf.isna().sum())
 
-    # Calcular la correlación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
+    # Calcular la correlación entre 'Ingreso_Anual_USD' con 'Latitud' y 'Longitud'
     correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
     correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
 
-    # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
-    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_latitud)
-
-    # Rellenar NaN en 'Longitud' utilizando la correlación con 'Ingreso_Anual_USD'
-    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
-
-    # Imputar 'Frecuencia_Compra' usando la relación con 'Edad'
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1)
-
-    # Imputar 'Historial_Compras' usando la relación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
-    # Las ubicaciones geográficas pueden influir en el historial de compras
-    correlation_latitud_historial = gdf[['Latitud', 'Historial_Compras']].corr().iloc[0, 1]
-    correlation_longitud_historial = gdf[['Longitud', 'Historial_Compras']].corr().iloc[0, 1]
-    
-    # Rellenar NaN en 'Historial_Compras' utilizando las correlaciones con 'Latitud' y 'Longitud'
-    gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(
-        gdf['Latitud'] * correlation_latitud_historial + gdf['Longitud'] * correlation_longitud_historial
+    # Rellenar los NaN en 'Ingreso_Anual_USD' usando la correlación con 'Latitud' y 'Longitud'
+    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(
+        gdf['Latitud'] * correlation_latitud + gdf['Longitud'] * correlation_longitud
     )
 
     # Mostrar los datos después de la limpieza
