@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # =============================================================================
 # Funciones
@@ -24,20 +23,50 @@ def cargar_datos():
             return pd.read_csv(archivo)
     return None
 
-def depurar_datos(df):
+def depurar_datos(gdf):
     """
     Limpia los datos imputando valores faltantes y transformando algunas columnas.
     """
-    df = df.copy()
-    df['Ingreso_Anual_USD'].fillna(df['Ingreso_Anual_USD'].mean(), inplace=True)
-    df['Edad'].fillna(round(df['Edad'].mean()), inplace=True)
-    df['Historial_Compras'].fillna(round(df['Historial_Compras'].mean()), inplace=True)
-    df['Latitud'].fillna(df['Latitud'].mean(), inplace=True)
-    df['Longitud'].fillna(df['Longitud'].mean(), inplace=True)
-    df['Frecuencia_Compra'].fillna("Media", inplace=True)
-    df['Nombre'].fillna(df['Nombre'].mode()[0], inplace=True)
-    df['Género'].fillna(df['Género'].mode()[0], inplace=True)
-    return df
+    gdf = gdf.copy()
+    gdf['Ingreso_Anual_USD'].fillna(gdf['Ingreso_Anual_USD'].mean(), inplace=True)
+    gdf['Edad'].fillna(round(gdf['Edad'].mean()), inplace=True)
+    gdf['Historial_Compras'].fillna(round(gdf['Historial_Compras'].mean()), inplace=True)
+    gdf['Latitud'].fillna(gdf['Latitud'].mean(), inplace=True)
+    gdf['Longitud'].fillna(gdf['Longitud'].mean(), inplace=True)
+    gdf['Frecuencia_Compra'].fillna("Media", inplace=True)
+    gdf['Nombre'].fillna(gdf['Nombre'].mode()[0], inplace=True)
+    gdf['Género'].fillna(gdf['Género'].mode()[0], inplace=True)
+    return gdf
+
+def graficar_correlaciones(gdf):
+    """
+    Grafica la correlación entre Edad e Ingreso Anual USD en tres niveles:
+      - Global
+      - Por Género
+      - Por Frecuencia de Compra
+    """
+    fig, axes = plt.subplots(3, 1, figsize=(10, 12))
+    
+    # Correlación global
+    correlation_global = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    axes[0].bar(['Global'], [correlation_global], color='b')
+    axes[0].set_title("Correlación Global entre Edad e Ingreso Anual USD")
+    axes[0].set_ylabel("Correlación")
+    
+    # Correlación por Género
+    correlation_por_genero = gdf.groupby('Género')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
+    axes[1].bar(correlation_por_genero.index, correlation_por_genero.values, color='g')
+    axes[1].set_title("Correlación entre Edad e Ingreso Anual USD por Género")
+    axes[1].set_ylabel("Correlación")
+    
+    # Correlación por Frecuencia de Compra
+    correlation_por_frecuencia = gdf.groupby('Frecuencia_Compra')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
+    axes[2].bar(correlation_por_frecuencia.index, correlation_por_frecuencia.values, color='r')
+    axes[2].set_title("Correlación entre Edad e Ingreso Anual USD por Frecuencia de Compra")
+    axes[2].set_ylabel("Correlación")
+    
+    plt.tight_layout()
+    st.pyplot(fig)
 
 def mostrar_mapas(gdf):
     """
@@ -45,8 +74,6 @@ def mostrar_mapas(gdf):
       - Mapa global de clientes.
       - Mapa por Género (Femenino en rosa y Masculino en azul).
       - Mapa de calor de Frecuencia de Compra.
-      
-    Se utiliza el shapefile de Natural Earth ubicado en 'ruta_0'.
     """
     # Cargar el shapefile del mundo desde Natural Earth
     ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
@@ -84,22 +111,6 @@ def mostrar_mapas(gdf):
     ax.set_title("Mapa de Calor de Frecuencia de Compra")
     st.pyplot(fig)
 
-def mostrar_correlacion(df):
-    """
-    Muestra una matriz de correlación de las variables numéricas en el dataset.
-    """
-    # Seleccionar solo las columnas numéricas
-    df_num = df.select_dtypes(include=['number'])
-    
-    # Generar la matriz de correlación
-    corr = df_num.corr()
-
-    # Graficar el mapa de calor
-    fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
-    ax.set_title("Matriz de Correlación")
-    st.pyplot(fig)
-
 # =============================================================================
 # Interfaz Principal
 # =============================================================================
@@ -107,20 +118,20 @@ def mostrar_correlacion(df):
 st.title("Análisis de Datos de Clientes")
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
-df = cargar_datos()
-if df is not None:
+gdf = cargar_datos()
+if gdf is not None:
     st.write("Archivo cargado exitosamente.")
     
     # Botones en la barra lateral
     if st.sidebar.button("Depurar Datos"):
-        df_clean = depurar_datos(df)
+        gdf_clean = depurar_datos(gdf)
         st.write("### Datos depurados:")
-        st.write(df_clean)
+        st.write(gdf_clean)
+        
+    if st.sidebar.button("Mostrar Correlaciones"):
+        gdf_clean = depurar_datos(gdf)
+        graficar_correlaciones(gdf_clean)
         
     if st.sidebar.button("Mostrar Mapas"):
-        df_clean = depurar_datos(df)
-        mostrar_mapas(df_clean)
-
-    if st.sidebar.button("Mostrar Correlación"):
-        df_clean = depurar_datos(df)
-        mostrar_correlacion(df_clean)
+        gdf_clean = depurar_datos(gdf)
+        mostrar_mapas(gdf_clean)
