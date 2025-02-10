@@ -138,10 +138,14 @@ import streamlit as st
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+import streamlit as st
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
 def mostrar_mapa_interactivo(gdf):
     """
-    Muestra un mapa interactivo de clientes en Centro y Sudamérica con filtros de género, 
-    frecuencia de compra, edad e ingreso anual.
+    Muestra un mapa interactivo de clientes en Centro y Sudamérica con filtros.
+    Mantiene el fondo del mapa y solo actualiza los puntos.
     """
     # Cargar el shapefile del mundo desde Natural Earth
     ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
@@ -155,7 +159,7 @@ def mostrar_mapa_interactivo(gdf):
     ]
     world = world[world["NAME"].isin(paises_latam)]
 
-    # Crear filtros interactivos en la barra lateral
+    # Configurar filtros en la barra lateral
     genero = st.sidebar.radio("Selecciona Género:", ["Todos", "Femenino", "Masculino"])
     frecuencia = st.sidebar.radio("Frecuencia de Compra:", ["Todos", "Baja", "Media", "Alta"])
     edad = st.sidebar.slider("Edad", int(gdf["Edad"].min()), int(gdf["Edad"].max()), 
@@ -172,15 +176,17 @@ def mostrar_mapa_interactivo(gdf):
         (gdf["Ingreso_Anual_USD"].between(ingreso[0], ingreso[1]))
     ]
 
-    # Crear el mapa solo si hay datos después del filtrado
+    # Crear la figura fuera del if para que siempre se muestre el mapa base
+    fig, ax = plt.subplots(figsize=(10, 6))
+    world.plot(ax=ax, color="lightgrey", edgecolor="black")
+
+    # Solo añadir puntos si hay datos filtrados
     if not gdf_filtrado.empty:
-        fig, ax = plt.subplots(figsize=(10, 6))
-        world.plot(ax=ax, color="lightgrey", edgecolor="black")
         gdf_filtrado.plot(ax=ax, color="blue", markersize=10, alpha=0.7)
-        ax.set_title("Mapa de Clientes en Centro y Sudamérica")
-        st.pyplot(fig)  # Se asegura que Streamlit redibuje el mapa
-    else:
-        st.warning("No hay datos para los filtros seleccionados.")
+
+    ax.set_title("Mapa de Clientes en Centro y Sudamérica")
+    st.pyplot(fig)  # Se mantiene el mapa y solo se actualizan los puntos
+
 
 
 
