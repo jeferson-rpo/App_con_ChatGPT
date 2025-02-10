@@ -199,4 +199,5 @@ if gdf is not None:
         mostrar_mapas(gdf_clean) 
 
     if st.sidebar.button("Mostrar Mapa de Deforestación"):
-        mostrar_mapa_deforestacion()
+    gdf_clean = depurar_datos(gdf)  # Asegurar que los datos estén depurados
+    mostrar_mapa_deforestacion(gdf_clean)  # Pasar gdf_clean como argumento
