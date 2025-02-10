@@ -91,7 +91,6 @@ def mostrar_mapas(gdf):
     xlim = (-120, -30)
     ylim = (-60, 30)
 
-    # -------------------- Mapa Global de Clientes --------------------
     fig, ax = plt.subplots(figsize=(10, 6))
     world.plot(ax=ax, color="lightgrey", edgecolor="black")
     gdf.plot(ax=ax, color="blue", markersize=10, alpha=0.7)
@@ -100,42 +99,30 @@ def mostrar_mapas(gdf):
     ax.set_title("Mapa de Clientes - Centro y Sudamérica")
     st.pyplot(fig)
 
-    # -------------------- Mapa por Género --------------------
-    fig, ax = plt.subplots(figsize=(10, 6))
-    world.plot(ax=ax, color="lightgrey", edgecolor="black")
-    gdf[gdf["Género"] == "Femenino"].plot(ax=ax, color="pink", markersize=10, alpha=0.7, label="Femenino")
-    gdf[gdf["Género"] == "Masculino"].plot(ax=ax, color="blue", markersize=10, alpha=0.7, label="Masculino")
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-    ax.legend()
-    ax.set_title("Mapa de Clientes por Género - Centro y Sudamérica")
-    st.pyplot(fig)
-
-    # -------------------- Mapa de Calor de Frecuencia de Compra --------------------
-    fig, ax = plt.subplots(figsize=(10, 6))
-    world.plot(ax=ax, color="lightgrey", edgecolor="black")
-
-    # Aplicar colores sin for
-    gdf_baja = gdf[gdf["Frecuencia_Compra"] == "Baja"]
-    gdf_media = gdf[gdf["Frecuencia_Compra"] == "Media"]
-    gdf_alta = gdf[gdf["Frecuencia_Compra"] == "Alta"]
-
-    gdf_baja.plot(ax=ax, color="green", markersize=10, alpha=0.7, label="Baja")
-    gdf_media.plot(ax=ax, color="yellow", markersize=10, alpha=0.7, label="Media")
-    gdf_alta.plot(ax=ax, color="red", markersize=10, alpha=0.7, label="Alta")
+def mostrar_mapa_deforestacion():
+    """
+    Muestra un mapa de deforestación basado en variables de tipo de vegetación, altitud y precipitación.
+    """
+    st.write("### Mapa Interactivo de Deforestación")
+    archivo = st.file_uploader("Sube un archivo CSV de deforestación", type=["csv"])
     
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-    ax.legend()
-    ax.set_title("Mapa de Frecuencia de Compra - Centro y Sudamérica")
-    st.pyplot(fig)
+    if archivo:
+        df = pd.read_csv(archivo)
+        df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df["Longitud"], df["Latitud"]))
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        df.plot(ax=ax, marker='o', color='green', markersize=10, alpha=0.5)
+        ax.set_xlim(df["Longitud"].min() - 1, df["Longitud"].max() + 1)
+        ax.set_ylim(df["Latitud"].min() - 1, df["Latitud"].max() + 1)
+        ax.set_title("Mapa de Deforestación")
+        st.pyplot(fig)
 
 
 # =============================================================================
 # Interfaz Principal
 # =============================================================================
 
-st.title("Análisis de Datos de Clientes")
+st.title("Análisis de Datos de Clientes y Deforestación")
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
 gdf = cargar_datos()
@@ -152,6 +139,9 @@ if gdf is not None:
         gdf_clean = depurar_datos(gdf)
         graficar_correlaciones(gdf_clean)
         
-    if st.sidebar.button("Mostrar Mapas"):
+    if st.sidebar.button("Mostrar Mapas de Clientes"):
         gdf_clean = depurar_datos(gdf)
-        mostrar_mapas(gdf_clean)
+        mostrar_mapas(gdf_clean) 
+
+    if st.sidebar.button("Mostrar Mapa de Deforestación"):
+        mostrar_mapa_deforestacion()
