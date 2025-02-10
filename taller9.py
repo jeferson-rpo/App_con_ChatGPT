@@ -3,16 +3,18 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
 # Opción para que el usuario ingrese una URL o suba un archivo
-opcion = st.radio("Selecciona una opción",\
-                  ("Cargar archivo desde URL", "Subir archivo"))
+opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
 
 # Si elige "Cargar archivo desde URL"
 if opcion == "Cargar archivo desde URL":
     url = st.text_input("Introduce la URL del archivo CSV",
-                       "https://github.com/gabrielawad/programacion-para-ingenieria/\
-raw/refs/heads/main/archivos-datos/aplicaciones/analisis_clientes.csv")
-
+                       "https://github.com/gabrielawad/programacion-para-ingenieria/raw/refs/heads/main/archivos-datos/aplicaciones/analisis_clientes.csv")
+    
     if url:
         gdf = pd.read_csv(url)
         st.write("Datos cargados desde la URL:", gdf)
@@ -27,4 +29,17 @@ if opcion == "Subir archivo":
 # Limpiar los datos si se cargaron
 if 'gdf' in locals():
     # Identificar los NaN en el DataFrame
-    st.write("NaN en las columnas:", gdf.isna().sum())
+    st.write("NaN en las columnas:", gdf.isna().sum()) 
+
+    # Calcular la correlación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
+    correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+
+    # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
+    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_latitud)
+
+    # Rellenar NaN en 'Longitud' utilizando la correlación con 'Ingreso_Anual_USD'
+    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
+
+    # Mostrar los datos después de la limpieza
+    st.write("Datos después de la limpieza:", gdf)
