@@ -7,22 +7,6 @@ import matplotlib.pyplot as plt
 # Funciones
 # =============================================================================
 
-def cargar_datos():
-    """
-    Permite cargar los datos desde URL o subiendo un archivo CSV.
-    """
-    opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
-    if opcion == "Cargar archivo desde URL":
-        url = st.text_input("Introduce la URL del archivo CSV",
-                            "https://github.com/gabrielawad/programacion-para-ingenieria/raw/refs/heads/main/archivos-datos/aplicaciones/analisis_clientes.csv")
-        if url:
-            return pd.read_csv(url)
-    elif opcion == "Subir archivo":
-        archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
-        if archivo:
-            return pd.read_csv(archivo)
-    return None
-
 def depurar_datos(gdf):
     """
     Limpia los datos imputando valores faltantes y transformando algunas columnas.
@@ -100,20 +84,30 @@ def mostrar_mapas(gdf):
 
 def mostrar_mapa_deforestacion(gdf):
     """
-    Muestra un mapa interactivo de deforestación con filtros de selección.
+    Muestra un mapa de deforestación con los datos disponibles.
     """
-    st.write("### Mapa Interactivo de Deforestación")
+    st.write("### Mapa de Deforestación")
+    
+    # Convertir DataFrame en GeoDataFrame si tiene coordenadas
+    if 'Longitud' in gdf.columns and 'Latitud' in gdf.columns:
+        gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf["Longitud"], gdf["Latitud"]))
+    else:
+        st.error("No se encontraron coordenadas en el dataset.")
+        return
 
-   
+    # Cargar mapa base de Sudamérica
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    sudamerica = world[world.continent == "South America"]
 
-# =============================================================================
-# Interfaz Principal
-# =============================================================================
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sudamerica.plot(ax=ax, color="lightgrey", edgecolor="black")
 
-st.title("Análisis de Deforestación")
+    # Graficar puntos de deforestación
+    gdf.plot(ax=ax, color="green", markersize=5, alpha=0.6, label="Zonas de Deforestación")
 
-# Cargar los datos desde un CSV depurado (asegúrate de cambiarlo por el tuyo)
-
+    ax.set_title("Mapa de Deforestación en Sudamérica")
+    ax.legend()
+    st.pyplot(fig)
 
 # =============================================================================
 # Interfaz Principal
@@ -121,25 +115,19 @@ st.title("Análisis de Deforestación")
 
 st.title("Análisis de Datos de Clientes y Deforestación")
 
-# Cargar datos (sin mostrarlos inmediatamente en el área principal)
-gdf = cargar_datos()
-if gdf is not None:
-    st.write("Archivo cargado exitosamente.")
+# Cargar datos (debe estar preprocesado en la variable `gdf`)
+if 'gdf' in locals() or 'gdf' in globals():
+    st.write("Dataset cargado exitosamente.")
+    gdf_clean = depurar_datos(gdf)
     
     # Botones en la barra lateral
-    if st.sidebar.button("Depurar Datos"):
-        gdf_clean = depurar_datos(gdf)
-        st.write("### Datos depurados:")
-        st.write(gdf_clean)
-        
     if st.sidebar.button("Mostrar Correlaciones"):
-        gdf_clean = depurar_datos(gdf)
         graficar_correlaciones(gdf_clean)
         
     if st.sidebar.button("Mostrar Mapas de Clientes"):
-        gdf_clean = depurar_datos(gdf)
         mostrar_mapas(gdf_clean) 
 
     if st.sidebar.button("Mostrar Mapa de Deforestación"):
-        gdf_clean = depurar_datos(gdf)
         mostrar_mapa_deforestacion(gdf_clean)
+else:
+    st.error("No se encontró el dataset `gdf`. Asegúrate de cargarlo antes de ejecutar la aplicación.")
