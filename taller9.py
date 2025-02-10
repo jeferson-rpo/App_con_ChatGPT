@@ -35,29 +35,24 @@ if 'gdf' in locals():
     edad_mediana = gdf['Edad'].median()
     gdf['Edad'] = gdf['Edad'].fillna(edad_mediana)
 
-    # Correlaciones de 'Edad' y 'Ingreso_Anual_USD'
-    correlation_edad_ingreso = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    st.write(f"Correlación entre Edad e Ingreso_Anual_USD: {correlation_edad_ingreso}")
-
-    # Imputar 'Edad' según la correlación con 'Ingreso_Anual_USD'
-    umbral_correlacion = 0.7  # Umbral para determinar si la correlación es alta
-    gdf['Edad'] = gdf.apply(lambda row: row['Ingreso_Anual_USD'] * correlation_edad_ingreso if abs(correlation_edad_ingreso) > umbral_correlacion and pd.isna(row['Edad']) else row['Edad'], axis=1)
-
-    # Imputar 'Latitud' y 'Longitud' si son NaN con su media
-    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Latitud'].mean())
-    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Longitud'].mean())
-
     # Correlación entre 'Edad' y 'Historial_Compras'
     correlation_edad_historial = gdf[['Edad', 'Historial_Compras']].corr().iloc[0, 1]
     st.write(f"Correlación entre Edad y Historial_Compras: {correlation_edad_historial}")
 
-    # Definir umbral para la correlación
-    umbral_historial = 0.7
+    # Si la correlación es alta, rellenamos los NaN de 'Historial_Compras' basándonos en la Edad
+    umbral_correlacion = 0.7  # Umbral para determinar si la correlación es alta
 
-    # Rellenar NaN en 'Historial_Compras' utilizando la correlación con 'Edad' si la correlación es alta
-    if abs(correlation_edad_historial) > umbral_historial:
-        # Vectorizamos la imputación de valores de 'Historial_Compras' basándonos en la correlación con 'Edad'
-        gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(gdf['Edad'] * correlation_edad_historial)
+    # Solo realizamos la imputación si la correlación supera el umbral
+    if abs(correlation_edad_historial) > umbral_correlacion:
+        # Creamos una máscara para los NaN de 'Historial_Compras'
+        mask_na = gdf['Historial_Compras'].isna()
+
+        # Ahora, asignamos los valores de 'Historial_Compras' según las edades similares
+        edad_correlacionada = gdf.loc[mask_na, 'Edad']
+        historial_correlacionado = gdf.loc[gdf['Edad'].isin(edad_correlacionada), 'Historial_Compras']
+
+        # Rellenamos los valores NaN en 'Historial_Compras' con los valores de historial correlacionado
+        gdf.loc[mask_na, 'Historial_Compras'] = historial_correlacionado
 
     # Imputar 'Frecuencia_Compra' utilizando el mapeo
     frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
