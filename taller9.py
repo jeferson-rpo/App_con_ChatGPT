@@ -74,6 +74,11 @@ if 'gdf' in locals():
     # Si hay valores fuera del rango esperado, se puede asignar un valor por defecto (por ejemplo, 'Media')
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(1)
 
+    # Transformar los valores numéricos de vuelta a sus nombres correspondientes
+    frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map_inv)
+
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
+
     st.write("NaN en las columnas:", gdf.isna().sum())
