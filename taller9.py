@@ -138,6 +138,10 @@ import streamlit as st
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+import streamlit as st
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
 def mostrar_mapa_interactivo(gdf):
     """
     Muestra un mapa interactivo de clientes en Centro y Sudamérica con filtros de género, 
@@ -173,9 +177,11 @@ def mostrar_mapa_interactivo(gdf):
                                              int(gdf["Ingreso_Anual_USD"].max()), 
                                              (int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max())))
 
-    # Aplicar filtros vectorizados
-    mask = ((gdf["Edad"] >= edad_min) & (gdf["Edad"] <= edad_max) & 
-            (gdf["Ingreso_Anual_USD"] >= ingreso_min) & (gdf["Ingreso_Anual_USD"] <= ingreso_max))
+    # Aplicar filtros correctamente
+    mask = (
+        (gdf["Edad"] >= edad_min) & (gdf["Edad"] <= edad_max) & 
+        (gdf["Ingreso_Anual_USD"] >= ingreso_min) & (gdf["Ingreso_Anual_USD"] <= ingreso_max)
+    )
 
     if genero_seleccionado != "Todos":
         mask &= gdf["Género"] == genero_seleccionado
@@ -189,14 +195,11 @@ def mostrar_mapa_interactivo(gdf):
     xlim = (-120, -30)
     ylim = (-60, 30)
 
-    # Crear un espacio vacío para el mapa y evitar que desaparezca
-    map_placeholder = st.empty()
-
-    # ---------- MAPA QUE SIEMPRE SE MANTIENE ----------
+    # ---------- MAPA QUE SE ACTUALIZA CORRECTAMENTE ----------
     fig, ax = plt.subplots(figsize=(10, 6))
     world.plot(ax=ax, color="lightgrey", edgecolor="black")
 
-    # Si hay datos filtrados, mostrar puntos; si no, el mapa se mantiene vacío
+    # Si hay datos filtrados, mostrar puntos; si no, mantener el mapa vacío
     if not gdf_filtrado.empty:
         colores = gdf_filtrado["Frecuencia_Compra"].map({"Baja": "green", "Media": "yellow", "Alta": "red"})
         gdf_filtrado.plot(ax=ax, color=colores, markersize=10, alpha=0.7)
@@ -205,8 +208,8 @@ def mostrar_mapa_interactivo(gdf):
     ax.set_ylim(ylim)
     ax.set_title("Mapa de Clientes - Centro y Sudamérica")
 
-    # Renderizar el mapa en el espacio reservado
-    map_placeholder.pyplot(fig)
+    # Renderizar el mapa
+    st.pyplot(fig)
 
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
