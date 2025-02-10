@@ -132,7 +132,9 @@ def mostrar_mapas(gdf):
 
 
 
-import matplotlib.pyplot as plt
+
+
+
 
 def mostrar_mapa_interactivo(gdf_filtrado, world):
     """
@@ -218,6 +220,7 @@ gdf_filtrado = gdf[mask]
 
 # ---------- MOSTRAR MAPA ----------
 graficar_mapa(gdf_filtrado, world)
+
 
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
