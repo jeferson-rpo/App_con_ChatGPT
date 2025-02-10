@@ -59,6 +59,9 @@ if 'gdf' in locals():
         gdf['Latitud'] * correlation_latitud + gdf['Longitud'] * correlation_longitud
     )
 
+    # Asegurarse de que los ingresos no sean negativos
+    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].clip(lower=0)
+
     # Imputar 'Nombre' con el nombre más frecuente
     nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
     gdf['Nombre'] = gdf['Nombre'].fillna(nombre_mas_frecuente)
@@ -80,5 +83,4 @@ if 'gdf' in locals():
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
-
     st.write("NaN en las columnas:", gdf.isna().sum())
