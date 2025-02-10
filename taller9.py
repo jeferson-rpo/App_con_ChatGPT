@@ -30,14 +30,15 @@ if 'gdf' in locals():
     promedio_ingreso = gdf['Ingreso_Anual_USD'].mean()
     gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(promedio_ingreso)
 
+    # Rellenar NaN en 'Edad' con el valor entero más cercano al promedio
+    promedio_edad = gdf['Edad'].mean()
+    valor_entero_edad = round(promedio_edad)  # Redondear al entero más cercano
+    gdf['Edad'] = gdf['Edad'].fillna(valor_entero_edad)
+
     # Rellenar NaN en 'Historial_Compras' con el valor entero más cercano al promedio
     promedio_historial = gdf['Historial_Compras'].mean()
     valor_entero_historial = round(promedio_historial)  # Redondear al entero más cercano
     gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(valor_entero_historial)
-
-    # Rellenar NaN en 'Edad' utilizando la correlación con 'Ingreso_Anual_USD'
-    correlation_edad_ingreso = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    gdf['Edad'] = gdf['Edad'].fillna(gdf['Ingreso_Anual_USD'] * correlation_edad_ingreso)
 
     # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
     correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
