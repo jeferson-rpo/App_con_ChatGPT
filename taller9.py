@@ -26,6 +26,12 @@ if 'gdf' in locals():
     # Identificar los NaN en el DataFrame
     st.write("NaN en las columnas:", gdf.isna().sum())
 
+    # Calcular la correlación entre 'Edad' e 'Ingreso_Anual_USD'
+    correlation_edad_ingreso = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+
+    # Rellenar NaN en 'Edad' utilizando la correlación con 'Ingreso_Anual_USD'
+    gdf['Edad'] = gdf['Edad'].fillna(gdf['Ingreso_Anual_USD'] * correlation_edad_ingreso)
+
     # Calcular la correlación entre 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'
     correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
     correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
@@ -55,4 +61,3 @@ if 'gdf' in locals():
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
-    st.write("NaN en las columnas:", gdf.isna().sum())
