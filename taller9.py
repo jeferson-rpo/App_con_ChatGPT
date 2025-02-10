@@ -146,12 +146,6 @@ def mostrar_mapa_interactivo(gdf_filtrado, world):
         Contiene los clientes filtrados según los criterios seleccionados (edad, ingreso, etc.).
     world : GeoDataFrame
         Contiene los límites de países de Centro y Sudamérica.
-
-    La función:
-    - Dibuja los países en el mapa.
-    - Muestra la ubicación de los clientes filtrados con colores según su frecuencia de compra.
-    - Configura el mapa con títulos y límites adecuados.
-    - Muestra el gráfico con `st.pyplot()` en Streamlit.
     """
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -171,24 +165,6 @@ def mostrar_mapa_interactivo(gdf_filtrado, world):
     # Mostrar en Streamlit
     st.pyplot(fig)
 
-
-# ---------- CARGAR DATOS ----------
-st.title("Mapa de Clientes en Centro y Sudamérica")
-
-# Cargar shapefile del mundo
-ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-world = gpd.read_file(ruta_0)
-
-# Filtrar solo los países de Centro y Sudamérica
-paises_latam = [
-    "Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Cuba", 
-    "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Honduras", 
-    "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"
-]
-world = world[world["NAME"].isin(paises_latam)]
-
-# Convertir DataFrame en GeoDataFrame con coordenadas
-gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf["Longitud"], gdf["Latitud"]))
 
 # ---------- FILTROS INTERACTIVOS ----------
 col1, col2, col3, col4 = st.columns(4)
@@ -215,11 +191,11 @@ if genero_seleccionado != "Todos":
 if frecuencia_seleccionada != "Todos":
     mask &= gdf["Frecuencia_Compra"] == frecuencia_seleccionada
 
-# Filtrar los datos
+# Filtrar los datos sin modificar la geometría
 gdf_filtrado = gdf[mask]
 
 # ---------- MOSTRAR MAPA ----------
-graficar_mapa(gdf_filtrado, world)
+graficar_mapa(gdf_filtrado, world)    
 
 
 
