@@ -137,65 +137,7 @@ def mostrar_mapas(gdf):
 
 
 def mostrar_mapa_interactivo(gdf_filtrado, world):
-    """
-    Genera un mapa de clientes en Centro y Sudamérica con los datos filtrados.
-
-    Parámetros:
-    -----------
-    gdf_filtrado : GeoDataFrame
-        Contiene los clientes filtrados según los criterios seleccionados (edad, ingreso, etc.).
-    world : GeoDataFrame
-        Contiene los límites de países de Centro y Sudamérica.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    # Dibujar el mapa de países
-    world.plot(ax=ax, color="lightgrey", edgecolor="black")
-
-    # Aplicar colores según la frecuencia de compra
-    colores = gdf_filtrado["Frecuencia_Compra"].map({"Baja": "green", "Media": "yellow", "Alta": "red"})
-
-    # Graficar los clientes filtrados
-    gdf_filtrado.plot(ax=ax, color=colores, markersize=10, alpha=0.7)
-
-    ax.set_xlim(-120, -30)
-    ax.set_ylim(-60, 30)
-    ax.set_title("Mapa de Clientes - Centro y Sudamérica")
-
-    # Mostrar en Streamlit
-    st.pyplot(fig)
-
-
-# ---------- FILTROS INTERACTIVOS ----------
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    genero_seleccionado = st.radio("Género", ["Todos"] + gdf["Género"].unique().tolist())
-with col2:
-    frecuencia_seleccionada = st.radio("Frecuencia de Compra", ["Todos"] + gdf["Frecuencia_Compra"].unique().tolist())
-with col3:
-    edad_min, edad_max = st.slider("Edad", int(gdf["Edad"].min()), int(gdf["Edad"].max()), 
-                                   (int(gdf["Edad"].min()), int(gdf["Edad"].max())))
-with col4:
-    ingreso_min, ingreso_max = st.slider("Ingreso Anual (USD)", int(gdf["Ingreso_Anual_USD"].min()), 
-                                         int(gdf["Ingreso_Anual_USD"].max()), 
-                                         (int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max())))
-
-# Aplicar filtros vectorizados
-mask = ((gdf["Edad"] >= edad_min) & (gdf["Edad"] <= edad_max) & 
-        (gdf["Ingreso_Anual_USD"] >= ingreso_min) & (gdf["Ingreso_Anual_USD"] <= ingreso_max))
-
-if genero_seleccionado != "Todos":
-    mask &= gdf["Género"] == genero_seleccionado
-
-if frecuencia_seleccionada != "Todos":
-    mask &= gdf["Frecuencia_Compra"] == frecuencia_seleccionada
-
-# Filtrar los datos sin modificar la geometría
-gdf_filtrado = gdf[mask]
-
-# ---------- MOSTRAR MAPA ----------
-graficar_mapa(gdf_filtrado, world)    
+   
 
 
 
