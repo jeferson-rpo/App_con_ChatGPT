@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Opción para que el usuario ingrese una URL o suba un archivo
@@ -27,47 +26,38 @@ if 'gdf' in locals():
     # Identificar los NaN en el DataFrame
     st.write("NaN en las columnas:", gdf.isna().sum())
 
-    # Imputar 'Ingreso_Anual_USD' con el promedio si tiene NaN
-    ingreso_promedio = gdf['Ingreso_Anual_USD'].mean()
-    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(ingreso_promedio)
+    # Rellenar NaN en 'Ingreso_Anual_USD' con el promedio de la columna
+    promedio_ingreso = gdf['Ingreso_Anual_USD'].mean()
+    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(promedio_ingreso)
 
-    # Imputar 'Edad' con la mediana si tiene NaN (más robusto que la correlación)
-    edad_mediana = gdf['Edad'].median()
-    gdf['Edad'] = gdf['Edad'].fillna(edad_mediana)
+    # Rellenar NaN en 'Historial_Compras' con el promedio de la columna
+    promedio_historial = gdf['Historial_Compras'].mean()
+    gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(promedio_historial)
 
-    # Correlación entre 'Edad' y 'Historial_Compras'
-    correlation_edad_historial = gdf[['Edad', 'Historial_Compras']].corr().iloc[0, 1]
-    st.write(f"Correlación entre Edad y Historial_Compras: {correlation_edad_historial}")
+    # Rellenar NaN en 'Edad' utilizando la correlación con 'Ingreso_Anual_USD'
+    correlation_edad_ingreso = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    gdf['Edad'] = gdf['Edad'].fillna(gdf['Ingreso_Anual_USD'] * correlation_edad_ingreso)
 
-    # Si la correlación es alta, rellenamos los NaN de 'Historial_Compras' basándonos en la Edad
-    umbral_correlacion = 0.7  # Umbral para determinar si la correlación es alta
+    # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
+    correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_latitud)
 
-    # Solo realizamos la imputación si la correlación supera el umbral
-    if abs(correlation_edad_historial) > umbral_correlacion:
-        # Crear una máscara para las filas con NaN en 'Historial_Compras'
-        mask_na = gdf['Historial_Compras'].isna()
+    # Rellenar NaN en 'Longitud' utilizando la correlación con 'Ingreso_Anual_USD'
+    correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
 
-        # Crear un DataFrame temporal solo con las filas que no tienen NaN en 'Historial_Compras'
-        gdf_no_na = gdf.dropna(subset=['Historial_Compras'])
+    # Imputar 'Frecuencia_Compra' usando la relación con 'Edad'
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1)
 
-        # Establecer un rango de edad dentro del cual buscar las filas más cercanas (±5 años)
-        rango_edad = 5
+    # Imputar 'Nombre' con el nombre más frecuente
+    nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
+    gdf['Nombre'] = gdf['Nombre'].fillna(nombre_mas_frecuente)
 
-        # Calcular la diferencia absoluta de edad entre todas las filas
-        dif_edad = np.abs(gdf['Edad'].values[:, None] - gdf_no_na['Edad'].values)
+    # Imputar 'Género' con el género más frecuente
+    genero_mas_frecuente = gdf['Género'].mode()[0]  # Obtiene el valor más frecuente
+    gdf['Género'] = gdf['Género'].fillna(genero_mas_frecuente)
 
-        # Filtrar solo las filas donde la diferencia de edad sea menor o igual a 5 años
-        mask_rango = dif_edad <= rango_edad
-
-        # Usar la máscara para encontrar el valor de 'Historial_Compras' más cercano
-        # Reemplazar los NaN en 'Historial_Compras' con el valor de la fila más cercana en el rango de ±5 años
-        valores_historial_compras = np.array([gdf_no_na['Historial_Compras'].values] * len(gdf))
-        valores_historial_compras[~mask_rango] = np.nan  # Establecer en NaN los valores que no cumplen el rango
-
-        # Tomar el valor más cercano para cada fila con NaN
-        gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(pd.Series(np.nanmin(valores_historial_compras, axis=1)))
-
-    # Imputar 'Frecuencia_Compra' utilizando el mapeo
+    # Limpiar los valores de 'Frecuencia_Compra' asegurando que solo tenga valores válidos
     frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map)
 
