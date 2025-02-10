@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Opción para que el usuario ingrese una URL o suba un archivo
 opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
@@ -22,81 +23,73 @@ if opcion == "Subir archivo":
 
 # Limpiar los datos si se cargaron
 if 'gdf' in locals():
-    # Identificar los NaN en el DataFrame
     st.write("NaN en las columnas:", gdf.isna().sum())
 
-    # Rellenar NaN en 'Ingreso_Anual_USD' con el promedio de la columna
-    promedio_ingreso = gdf['Ingreso_Anual_USD'].mean()
-    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(promedio_ingreso)
+    # Rellenar NaN en 'Ingreso_Anual_USD' con el promedio
+    gdf['Ingreso_Anual_USD'] = gdf['Ingreso_Anual_USD'].fillna(gdf['Ingreso_Anual_USD'].mean())
 
     # Rellenar NaN en 'Edad' con el valor entero más cercano al promedio
-    promedio_edad = gdf['Edad'].mean()
-    valor_entero_edad = round(promedio_edad)
-    gdf['Edad'] = gdf['Edad'].fillna(valor_entero_edad)
+    gdf['Edad'] = gdf['Edad'].fillna(round(gdf['Edad'].mean()))
 
     # Rellenar NaN en 'Historial_Compras' con el valor entero más cercano al promedio
-    promedio_historial = gdf['Historial_Compras'].mean()
-    valor_entero_historial = round(promedio_historial)
-    gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(valor_entero_historial)
+    gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(round(gdf['Historial_Compras'].mean()))
 
-    # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
-    correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_latitud)
-
-    # Rellenar NaN en 'Longitud' utilizando la correlación con 'Ingreso_Anual_USD'
-    correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
+    # Rellenar NaN en 'Latitud' y 'Longitud' usando la correlación con 'Ingreso_Anual_USD'
+    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'].corr(gdf['Latitud']) * gdf['Ingreso_Anual_USD'])
+    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'].corr(gdf['Longitud']) * gdf['Ingreso_Anual_USD'])
 
     # Imputar 'Frecuencia_Compra' usando la relación con 'Edad'
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1)
 
-    # Imputar 'Nombre' con el nombre más frecuente
-    nombre_mas_frecuente = gdf['Nombre'].mode()[0]
-    gdf['Nombre'] = gdf['Nombre'].fillna(nombre_mas_frecuente)
+    # Imputar 'Nombre' y 'Género' con los valores más frecuentes
+    gdf['Nombre'] = gdf['Nombre'].fillna(gdf['Nombre'].mode()[0])
+    gdf['Género'] = gdf['Género'].fillna(gdf['Género'].mode()[0])
 
-    # Imputar 'Género' con el género más frecuente
-    genero_mas_frecuente = gdf['Género'].mode()[0]
-    gdf['Género'] = gdf['Género'].fillna(genero_mas_frecuente)
-
-    # Limpiar los valores de 'Frecuencia_Compra'
+    # Convertir 'Frecuencia_Compra' a valores numéricos y luego de regreso a etiquetas
     frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map)
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(1)
+    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map).fillna(1)
     frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
     gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map_inv)
 
-    # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
 
-    # --- FUNCIONALIDAD SOLICITADA: Análisis de correlaciones ---
-
-    # Correlación global entre 'Edad' e 'Ingreso_Anual_USD'
+    # --- ANÁLISIS DE CORRELACIÓN ---
+    
+    # Correlación global entre Edad e Ingreso Anual USD
     correlation_global = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
     st.write(f"Correlación global entre Edad e Ingreso Anual USD: {correlation_global:.2f}")
 
-    # Correlación por Género
+    # Correlación segmentada por Género
     correlation_por_genero = gdf.groupby('Género')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
-    st.write("Correlación entre Edad e Ingreso Anual USD segmentado por Género:")
-    st.write(correlation_por_genero)
+    st.write("Correlación entre Edad e Ingreso Anual USD segmentado por Género:", correlation_por_genero)
 
-    # Correlación por Frecuencia de Compra
+    # Correlación segmentada por Frecuencia de Compra
     correlation_por_frecuencia = gdf.groupby('Frecuencia_Compra')[['Edad', 'Ingreso_Anual_USD']].corr().unstack().iloc[:, 1]
-    st.write("Correlación entre Edad e Ingreso Anual USD segmentado por Frecuencia de Compra:")
-    st.write(correlation_por_frecuencia)
+    st.write("Correlación entre Edad e Ingreso Anual USD segmentado por Frecuencia de Compra:", correlation_por_frecuencia)
 
     # --- VISUALIZACIÓN DE RESULTADOS ---
+    
+    # Crear un DataFrame con las correlaciones
+    correlation_df = pd.DataFrame({
+        "Categoría": ["Global"] + list(correlation_por_genero.index) + list(correlation_por_frecuencia.index),
+        "Correlación": [correlation_global] + list(correlation_por_genero.values) + list(correlation_por_frecuencia.values)
+    })
+
+    # Crear un mapa de colores para diferenciar las categorías
+    palette = ["blue"] + ["green"] * len(correlation_por_genero) + ["red"] * len(correlation_por_frecuencia)
+
+    # Crear la visualización mejorada
     fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(x="Categoría", y="Correlación", data=correlation_df, palette=palette, ax=ax)
 
-    # Correlación global
-    ax.bar('Global', correlation_global, color='b', label='Global')
+    # Ajustar el título y etiquetas
+    ax.set_title("Correlación entre Edad e Ingreso Anual USD", fontsize=14)
+    ax.set_ylabel("Coeficiente de Correlación", fontsize=12)
+    ax.set_xlabel("Segmentación", fontsize=12)
+    ax.axhline(0, color='black', linestyle='dashed', linewidth=1)  # Línea en 0 para referencia
 
-    # Correlación por género
-    ax.bar(correlation_por_genero.index, correlation_por_genero.values, color='g', label='Por Género')
+    # Rotar etiquetas del eje X si hay muchas categorías
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
-    # Correlación por frecuencia de compra
-    ax.bar(correlation_por_frecuencia.index, correlation_por_frecuencia.values, color='r', label='Por Frecuencia de Compra')
-
-    ax.set_title("Correlación entre Edad e Ingreso Anual USD")
-    ax.set_ylabel("Correlación")
-    ax.legend(loc='best')
+    # Mostrar la gráfica en Streamlit
     st.pyplot(fig)
