@@ -40,35 +40,38 @@ if 'gdf' in locals():
     valor_entero_historial = round(promedio_historial)  # Redondear al entero más cercano
     gdf['Historial_Compras'] = gdf['Historial_Compras'].fillna(valor_entero_historial)
 
-    # Rellenar NaN en 'Latitud' utilizando la correlación con 'Ingreso_Anual_USD'
-    correlation_latitud = gdf[['Latitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    gdf['Latitud'] = gdf['Latitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_latitud)
+    # Realizar el análisis de correlación global entre 'Edad' e 'Ingreso_Anual_USD'
+    correlation_global = gdf[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    st.write(f"Correlación global entre Edad e Ingreso Anual USD: {correlation_global:.2f}")
 
-    # Rellenar NaN en 'Longitud' utilizando la correlación con 'Ingreso_Anual_USD'
-    correlation_longitud = gdf[['Longitud', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
-    gdf['Longitud'] = gdf['Longitud'].fillna(gdf['Ingreso_Anual_USD'] * correlation_longitud)
+    # Realizar el análisis de correlación segmentado por 'Género'
+    correlation_por_genero = gdf.groupby('Género')[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    st.write("Correlación entre Edad e Ingreso Anual USD segmentado por Género:")
+    st.write(correlation_por_genero)
 
-    # Imputar 'Frecuencia_Compra' usando la relación con 'Edad'
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(gdf['Edad'] * 0.1)
+    # Realizar el análisis de correlación segmentado por 'Frecuencia_Compra'
+    correlation_por_frecuencia = gdf.groupby('Frecuencia_Compra')[['Edad', 'Ingreso_Anual_USD']].corr().iloc[0, 1]
+    st.write("Correlación entre Edad e Ingreso Anual USD segmentado por Frecuencia de Compra:")
+    st.write(correlation_por_frecuencia)
 
-    # Imputar 'Nombre' con el nombre más frecuente
-    nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
-    gdf['Nombre'] = gdf['Nombre'].fillna(nombre_mas_frecuente)
+    # Visualización de los resultados
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Correlación global
+    ax.bar('Global', correlation_global, color='b', label='Global')
+    
+    # Correlación por género (sin for, usando valores directamente de correlation_por_genero)
+    correlation_por_genero_values = correlation_por_genero.values
+    ax.bar(correlation_por_genero.index, correlation_por_genero_values, color='g', label='Por Género')
 
-    # Imputar 'Género' con el género más frecuente
-    genero_mas_frecuente = gdf['Género'].mode()[0]  # Obtiene el valor más frecuente
-    gdf['Género'] = gdf['Género'].fillna(genero_mas_frecuente)
-
-    # Limpiar los valores de 'Frecuencia_Compra' asegurando que solo tenga valores válidos
-    frec_map = {"Baja": 0, "Media": 1, "Alta": 2}
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map)
-
-    # Si hay valores fuera del rango esperado, se puede asignar un valor por defecto (por ejemplo, 'Media')
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].fillna(1)
-
-    # Transformar los valores numéricos de vuelta a sus nombres correspondientes
-    frec_map_inv = {0: "Baja", 1: "Media", 2: "Alta"}
-    gdf['Frecuencia_Compra'] = gdf['Frecuencia_Compra'].map(frec_map_inv)
+    # Correlación por frecuencia de compra (sin for, usando valores directamente de correlation_por_frecuencia)
+    correlation_por_frecuencia_values = correlation_por_frecuencia.values
+    ax.bar(correlation_por_frecuencia.index, correlation_por_frecuencia_values, color='r', label='Por Frecuencia de Compra')
+    
+    ax.set_title("Correlación entre Edad e Ingreso Anual USD")
+    ax.set_ylabel("Correlación")
+    ax.legend(loc='best')
+    st.pyplot(fig)
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
