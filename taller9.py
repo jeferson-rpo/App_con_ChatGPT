@@ -104,39 +104,7 @@ def mostrar_mapa_deforestacion(gdf):
     """
     st.write("### Mapa Interactivo de Deforestación")
 
-    # Verificar si el DataFrame tiene coordenadas válidas
-    if "Longitud" in gdf.columns and "Latitud" in gdf.columns:
-        # Convertir a GeoDataFrame
-        gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf["Longitud"], gdf["Latitud"]))
-
-        # Filtros interactivos
-        min_lat, max_lat = gdf["Latitud"].min(), gdf["Latitud"].max()
-        min_lon, max_lon = gdf["Longitud"].min(), gdf["Longitud"].max()
-
-        lat_range = st.slider("Filtrar por latitud", min_lat, max_lat, (min_lat, max_lat))
-        lon_range = st.slider("Filtrar por longitud", min_lon, max_lon, (min_lon, max_lon))
-
-        # Aplicar filtros
-        gdf = gdf[(gdf["Latitud"].between(lat_range[0], lat_range[1])) &
-                  (gdf["Longitud"].between(lon_range[0], lon_range[1]))]
-
-        # Crear mapa con Folium
-        m = folium.Map(location=[gdf["Latitud"].mean(), gdf["Longitud"].mean()], zoom_start=5)
-
-        for _, row in gdf.iterrows():
-            folium.CircleMarker(
-                location=[row["Latitud"], row["Longitud"]],
-                radius=5,
-                color="red",
-                fill=True,
-                fill_color="red",
-                fill_opacity=0.6,
-                popup=f"Zona: {row.get('Zona', 'Desconocida')}\nSuperficie deforestada: {row.get('Superficie', 'N/A')} ha"
-            ).add_to(m)
-
-        folium_static(m)
-    else:
-        st.write("No se encontraron coordenadas válidas en los datos.")
+   
 
 # =============================================================================
 # Interfaz Principal
