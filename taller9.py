@@ -134,6 +134,10 @@ import streamlit as st
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+import streamlit as st
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
 def mostrar_mapa_interactivo(gdf):
     """
     Muestra un mapa interactivo de clientes en Centro y Sudamérica con filtros de género, 
@@ -185,11 +189,14 @@ def mostrar_mapa_interactivo(gdf):
     xlim = (-120, -30)
     ylim = (-60, 30)
 
+    # Crear un espacio vacío para el mapa y evitar que desaparezca
+    map_placeholder = st.empty()
+
     # ---------- MAPA QUE SIEMPRE SE MANTIENE ----------
     fig, ax = plt.subplots(figsize=(10, 6))
     world.plot(ax=ax, color="lightgrey", edgecolor="black")
 
-    # Si hay datos filtrados, los puntos se actualizan; si no, el mapa se mantiene vacío
+    # Si hay datos filtrados, mostrar puntos; si no, el mapa se mantiene vacío
     if not gdf_filtrado.empty:
         colores = gdf_filtrado["Frecuencia_Compra"].map({"Baja": "green", "Media": "yellow", "Alta": "red"})
         gdf_filtrado.plot(ax=ax, color=colores, markersize=10, alpha=0.7)
@@ -197,7 +204,9 @@ def mostrar_mapa_interactivo(gdf):
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     ax.set_title("Mapa de Clientes - Centro y Sudamérica")
-    st.pyplot(fig)  # Siempre renderiza el mapa, sin importar los filtros
+
+    # Renderizar el mapa en el espacio reservado
+    map_placeholder.pyplot(fig)
 
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
