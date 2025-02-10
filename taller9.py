@@ -63,10 +63,11 @@ if 'gdf' in locals():
     nombre_mas_frecuente = gdf['Nombre'].mode()[0]  # Obtiene el valor más frecuente
     gdf['Nombre'] = gdf['Nombre'].fillna(nombre_mas_frecuente)
 
-    # Imputar 'Sexo' con el sexo más frecuente
-    sexo_mas_frecuente = gdf['Género'].mode()[0]  # Obtiene el valor más frecuente
-    gdf['Sexo'] = gdf['Género'].fillna(sexo_mas_frecuente)
+    # Imputar 'Género' con el género más frecuente
+    genero_mas_frecuente = gdf['Género'].mode()[0]  # Obtiene el valor más frecuente
+    gdf['Género'] = gdf['Género'].fillna(genero_mas_frecuente)
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
+
     st.write("NaN en las columnas:", gdf.isna().sum())
