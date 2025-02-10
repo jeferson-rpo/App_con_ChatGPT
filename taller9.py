@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # =============================================================================
 # Funciones
@@ -23,20 +24,20 @@ def cargar_datos():
             return pd.read_csv(archivo)
     return None
 
-def depurar_datos(gdf):
+def depurar_datos(df):
     """
     Limpia los datos imputando valores faltantes y transformando algunas columnas.
     """
-    gdf = gdf.copy()
-    gdf['Ingreso_Anual_USD'].fillna(gdf['Ingreso_Anual_USD'].mean(), inplace=True)
-    gdf['Edad'].fillna(round(gdf['Edad'].mean()), inplace=True)
-    gdf['Historial_Compras'].fillna(round(gdf['Historial_Compras'].mean()), inplace=True)
-    gdf['Latitud'].fillna(gdf['Latitud'].mean(), inplace=True)
-    gdf['Longitud'].fillna(gdf['Longitud'].mean(), inplace=True)
-    gdf['Frecuencia_Compra'].fillna("Media", inplace=True)
-    gdf['Nombre'].fillna(gdf['Nombre'].mode()[0], inplace=True)
-    gdf['Género'].fillna(gdf['Género'].mode()[0], inplace=True)
-    return gdf
+    df = df.copy()
+    df['Ingreso_Anual_USD'].fillna(df['Ingreso_Anual_USD'].mean(), inplace=True)
+    df['Edad'].fillna(round(df['Edad'].mean()), inplace=True)
+    df['Historial_Compras'].fillna(round(df['Historial_Compras'].mean()), inplace=True)
+    df['Latitud'].fillna(df['Latitud'].mean(), inplace=True)
+    df['Longitud'].fillna(df['Longitud'].mean(), inplace=True)
+    df['Frecuencia_Compra'].fillna("Media", inplace=True)
+    df['Nombre'].fillna(df['Nombre'].mode()[0], inplace=True)
+    df['Género'].fillna(df['Género'].mode()[0], inplace=True)
+    return df
 
 def mostrar_mapas(gdf):
     """
@@ -83,6 +84,22 @@ def mostrar_mapas(gdf):
     ax.set_title("Mapa de Calor de Frecuencia de Compra")
     st.pyplot(fig)
 
+def mostrar_correlacion(df):
+    """
+    Muestra una matriz de correlación de las variables numéricas en el dataset.
+    """
+    # Seleccionar solo las columnas numéricas
+    df_num = df.select_dtypes(include=['number'])
+    
+    # Generar la matriz de correlación
+    corr = df_num.corr()
+
+    # Graficar el mapa de calor
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
+    ax.set_title("Matriz de Correlación")
+    st.pyplot(fig)
+
 # =============================================================================
 # Interfaz Principal
 # =============================================================================
@@ -90,16 +107,20 @@ def mostrar_mapas(gdf):
 st.title("Análisis de Datos de Clientes")
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
-gdf = cargar_datos()
-if gdf is not None:
+df = cargar_datos()
+if df is not None:
     st.write("Archivo cargado exitosamente.")
     
     # Botones en la barra lateral
     if st.sidebar.button("Depurar Datos"):
-        gdf_clean = depurar_datos(gdf)
+        df_clean = depurar_datos(df)
         st.write("### Datos depurados:")
-        st.write(gdf_clean)
+        st.write(df_clean)
         
     if st.sidebar.button("Mostrar Mapas"):
-        gdf_clean = depurar_datos(gdf)
-        mostrar_mapas(gdf_clean)
+        df_clean = depurar_datos(df)
+        mostrar_mapas(df_clean)
+
+    if st.sidebar.button("Mostrar Correlación"):
+        df_clean = depurar_datos(df)
+        mostrar_correlacion(df_clean)
