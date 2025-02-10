@@ -130,87 +130,95 @@ def mostrar_mapas(gdf):
     ax.set_title("Mapa de Calor de Frecuencia de Compra - Centro y Sudamérica")
     st.pyplot(fig)
 
-import streamlit as st
-import geopandas as gpd
+
+
+
 import matplotlib.pyplot as plt
 
-def filtrar_datos(gdf, genero, frecuencia, edad_min, edad_max, ingreso_min, ingreso_max):
+def mostrar_mapa_interactivo(gdf_filtrado, world):
     """
-    Filtra los datos de clientes según los filtros seleccionados.
-    """
-    mask = ((gdf["Edad"] >= edad_min) & (gdf["Edad"] <= edad_max) & 
-            (gdf["Ingreso_Anual_USD"] >= ingreso_min) & (gdf["Ingreso_Anual_USD"] <= ingreso_max))
+    Genera un mapa de clientes en Centro y Sudamérica con los datos filtrados.
 
-    if genero != "Todos":
-        mask &= gdf["Género"] == genero
+    Parámetros:
+    -----------
+    gdf_filtrado : GeoDataFrame
+        Contiene los clientes filtrados según los criterios seleccionados (edad, ingreso, etc.).
+    world : GeoDataFrame
+        Contiene los límites de países de Centro y Sudamérica.
 
-    if frecuencia != "Todos":
-        mask &= gdf["Frecuencia_Compra"] == frecuencia
-
-    return gdf[mask]  # Retorna el DataFrame filtrado
-
-def graficar_mapa(gdf_filtrado, world):
-    """
-    Genera y muestra el mapa de clientes filtrados en Centro y Sudamérica.
+    La función:
+    - Dibuja los países en el mapa.
+    - Muestra la ubicación de los clientes filtrados con colores según su frecuencia de compra.
+    - Configura el mapa con títulos y límites adecuados.
+    - Muestra el gráfico con `st.pyplot()` en Streamlit.
     """
     fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Dibujar el mapa de países
     world.plot(ax=ax, color="lightgrey", edgecolor="black")
 
-    # Aplicar colores sin `for`
+    # Aplicar colores según la frecuencia de compra
     colores = gdf_filtrado["Frecuencia_Compra"].map({"Baja": "green", "Media": "yellow", "Alta": "red"})
+
+    # Graficar los clientes filtrados
     gdf_filtrado.plot(ax=ax, color=colores, markersize=10, alpha=0.7)
 
     ax.set_xlim(-120, -30)
     ax.set_ylim(-60, 30)
     ax.set_title("Mapa de Clientes - Centro y Sudamérica")
+
+    # Mostrar en Streamlit
     st.pyplot(fig)
 
-def mostrar_mapa_interactivo(gdf):
-    """
-    Muestra un mapa interactivo de clientes en Centro y Sudamérica con filtros.
-    """
-    # Cargar el shapefile del mundo
-    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-    world = gpd.read_file(ruta_0)
 
-    # Filtrar solo los países de Centro y Sudamérica
-    paises_latam = [
-        "Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Cuba", 
-        "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Honduras", 
-        "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"
-    ]
-    world = world[world["NAME"].isin(paises_latam)]
+# ---------- CARGAR DATOS ----------
+st.title("Mapa de Clientes en Centro y Sudamérica")
 
-    # Convertir DataFrame en GeoDataFrame
-    gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf["Longitud"], gdf["Latitud"]))
+# Cargar shapefile del mundo
+ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+world = gpd.read_file(ruta_0)
 
-    # ---------- INTERFAZ DE USUARIO - FILTROS ----------
-    st.sidebar.header("Filtros")
-    
-    genero_seleccionado = st.sidebar.radio("Género", ["Todos"] + gdf["Género"].unique().tolist())
-    frecuencia_seleccionada = st.sidebar.radio("Frecuencia de Compra", ["Todos"] + gdf["Frecuencia_Compra"].unique().tolist())
-    
-    edad_min, edad_max = st.sidebar.slider("Edad", int(gdf["Edad"].min()), int(gdf["Edad"].max()), (int(gdf["Edad"].min()), int(gdf["Edad"].max())))
-    ingreso_min, ingreso_max = st.sidebar.slider("Ingreso Anual (USD)", int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max()), (int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max())))
+# Filtrar solo los países de Centro y Sudamérica
+paises_latam = [
+    "Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Cuba", 
+    "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Honduras", 
+    "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"
+]
+world = world[world["NAME"].isin(paises_latam)]
 
-    # Aplicar filtros sin borrar el mapa
-    gdf_filtrado = filtrar_datos(gdf, genero_seleccionado, frecuencia_seleccionada, edad_min, edad_max, ingreso_min, ingreso_max)
+# Convertir DataFrame en GeoDataFrame con coordenadas
+gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf["Longitud"], gdf["Latitud"]))
 
-    # Llamar la función para graficar el mapa
-    graficar_mapa(gdf_filtrado, world)
+# ---------- FILTROS INTERACTIVOS ----------
+col1, col2, col3, col4 = st.columns(4)
 
-# Cargar datos y ejecutar la aplicación en Streamlit
-if "gdf_clean" not in st.session_state:
-    st.session_state.gdf_clean = None  # Inicializar en None
+with col1:
+    genero_seleccionado = st.radio("Género", ["Todos"] + gdf["Género"].unique().tolist())
+with col2:
+    frecuencia_seleccionada = st.radio("Frecuencia de Compra", ["Todos"] + gdf["Frecuencia_Compra"].unique().tolist())
+with col3:
+    edad_min, edad_max = st.slider("Edad", int(gdf["Edad"].min()), int(gdf["Edad"].max()), 
+                                   (int(gdf["Edad"].min()), int(gdf["Edad"].max())))
+with col4:
+    ingreso_min, ingreso_max = st.slider("Ingreso Anual (USD)", int(gdf["Ingreso_Anual_USD"].min()), 
+                                         int(gdf["Ingreso_Anual_USD"].max()), 
+                                         (int(gdf["Ingreso_Anual_USD"].min()), int(gdf["Ingreso_Anual_USD"].max())))
 
-if st.sidebar.button("Mostrar Mapa de Clientes"):
-    st.session_state.gdf_clean = depurar_datos(gdf)  # Guardar en sesión
+# Aplicar filtros vectorizados
+mask = ((gdf["Edad"] >= edad_min) & (gdf["Edad"] <= edad_max) & 
+        (gdf["Ingreso_Anual_USD"] >= ingreso_min) & (gdf["Ingreso_Anual_USD"] <= ingreso_max))
 
-# Si ya hay datos guardados en la sesión, mostrar el mapa
-if st.session_state.gdf_clean is not None:
-    mostrar_mapa_interactivo(st.session_state.gdf_clean)
+if genero_seleccionado != "Todos":
+    mask &= gdf["Género"] == genero_seleccionado
 
+if frecuencia_seleccionada != "Todos":
+    mask &= gdf["Frecuencia_Compra"] == frecuencia_seleccionada
 
+# Filtrar los datos
+gdf_filtrado = gdf[mask]
+
+# ---------- MOSTRAR MAPA ----------
+graficar_mapa(gdf_filtrado, world)
 
 
 # Cargar datos (sin mostrarlos inmediatamente en el área principal)
