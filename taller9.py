@@ -55,3 +55,4 @@ if 'gdf' in locals():
 
     # Mostrar los datos después de la limpieza
     st.write("Datos después de la limpieza:", gdf)
+    st.write("NaN en las columnas:", gdf.isna().sum())
