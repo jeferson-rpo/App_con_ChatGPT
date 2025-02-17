@@ -333,6 +333,11 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import streamlit as st
 
+import pandas as pd
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import streamlit as st
+
 def analizar_especies_con_menor_volumen(gdf):
     """
     Identifica las especies con menor volumen movilizado y muestra su distribución geográfica
@@ -399,8 +404,9 @@ def analizar_especies_con_menor_volumen(gdf):
     colombia_dataframe.plot(ax=ax, color='lightgray')
 
     # Superponer el mapa de calor con los puntos de las especies con menor volumen movilizado
+    # Aumentar el tamaño de los puntos multiplicando el tamaño de los marcadores
     gdf_menor_volumen_agrupado.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', 
-                                    markersize=gdf_menor_volumen_agrupado['VOLUMEN M3'] / 100, alpha=0.7, legend=True)
+                                    markersize=gdf_menor_volumen_agrupado['VOLUMEN M3'] * 0.2, alpha=0.7, legend=True)
 
     # Añadir título y mostrar el mapa
     ax.set_title('Distribución Geográfica de las Especies con Menor Volumen Movilizado', fontsize=15)
