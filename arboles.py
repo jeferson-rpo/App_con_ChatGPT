@@ -173,21 +173,23 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada con geolocalización.
     """
-    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
-    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-    mundo_dataframe = gpd.read_file(ruta_0)
-    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
-
     # Asegurarse de que los valores de VOLUMEN M3 sean numéricos y manejar valores no numéricos
     gdf['VOLUMEN M3'] = pd.to_numeric(gdf['VOLUMEN M3'], errors='coerce')  # Convertir a numérico, valores no válidos se convierten en NaN
     gdf = gdf.dropna(subset=['VOLUMEN M3'])  # Eliminar filas con NaN en la columna 'VOLUMEN M3'
 
-    # Agrupar los datos por municipio y calcular el volumen total por municipio
+    # Agrupar los datos por municipio y sumar el volumen de madera movilizada
     top_10_municipios = gdf.groupby('MUNICIPIO')['VOLUMEN M3'].sum().reset_index()
+
+    # Ordenar por el volumen y seleccionar los 10 municipios con mayor volumen
     top_10_municipios = top_10_municipios.sort_values(by='VOLUMEN M3', ascending=False).head(10)
 
-    # Filtrar gdf para incluir solo los datos de los 10 municipios con mayor volumen
+    # Filtrar gdf para incluir solo los datos de los 10 municipios seleccionados
     gdf_top_10 = gdf[gdf['MUNICIPIO'].isin(top_10_municipios['MUNICIPIO'])]
+
+    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
+    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    mundo_dataframe = gpd.read_file(ruta_0)
+    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
 
     # Crear un GeoDataFrame a partir de los datos de madera movilizada
     gdf_top_10['geometry'] = gpd.points_from_xy(gdf_top_10['LONGITUD'], gdf_top_10['LATITUD'])
@@ -206,6 +208,7 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
 
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
+
 
 
 # Cargar datos
