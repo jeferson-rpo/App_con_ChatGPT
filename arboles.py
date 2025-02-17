@@ -26,6 +26,7 @@ def cargar_datos():
 def graficar_top_10_especies(especies_pais):
     """
     Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
+    Cada barra tendrá un color diferente.
 
     Args:
         especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
@@ -33,9 +34,12 @@ def graficar_top_10_especies(especies_pais):
     # Seleccionar las 10 especies con mayor volumen
     top_10_especies = especies_pais.head(10)
 
+    # Crear una lista de colores para las barras
+    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
+
     # Crear el gráfico de barras
     plt.figure(figsize=(10, 6))
-    plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color='skyblue')
+    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
     plt.xlabel('Especie')
     plt.ylabel('Volumen Movilizado (M3)')
     plt.title('Top 10 Especies con Mayor Volumen Movilizado')
