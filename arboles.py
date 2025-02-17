@@ -214,6 +214,42 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
 
+def analizar_evolucion_temporal(gdf):
+    """
+    Analiza la evolución temporal del volumen de madera movilizada por especie y tipo de producto.
+    
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+    """
+    # Título para la sección
+    st.markdown("---")
+    st.markdown("## Análisis de la Evolución Temporal del Volumen de Madera Movilizada")
+    st.markdown("---")
+
+    # Agrupar los datos por AÑO, ESPECIE, TIPO PRODUCTO y VOLUMEN M3
+    df_evolucion = gdf.groupby(['AÑO', 'ESPECIE', 'TIPO PRODUCTO'])['VOLUMEN M3'].sum().reset_index()
+
+    # Filtrar una especie y tipo de producto para graficar (esto se puede modificar según preferencia)
+    especie_seleccionada = st.selectbox("Selecciona una especie", df_evolucion['ESPECIE'].unique())
+    tipo_producto_seleccionado = st.selectbox("Selecciona un tipo de producto", df_evolucion['TIPO PRODUCTO'].unique())
+
+    # Filtrar los datos seleccionados
+    df_filtrado = df_evolucion[(df_evolucion['ESPECIE'] == especie_seleccionada) & 
+                               (df_evolucion['TIPO PRODUCTO'] == tipo_producto_seleccionado)]
+
+    # Gráfico de evolución temporal
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_filtrado['AÑO'], df_filtrado['VOLUMEN M3'], marker='o', color='b', linestyle='-', markersize=6)
+    plt.xlabel('Año')
+    plt.ylabel('Volumen Movilizado (M3)')
+    plt.title(f'Evolución Temporal del Volumen de Madera Movilizada: {especie_seleccionada} ({tipo_producto_seleccionado})')
+    plt.grid(True)
+    plt.tight_layout()
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(plt)
+
+
 
 
 # Cargar datos
@@ -225,3 +261,5 @@ if gdf is not None:
     # Realizar el análisis automáticamente
     analizar_especies(gdf)
     graficar_mapa_de_calor_top_10_municipios(gdf)
+    # Llamada a la función de análisis (suponiendo que gdf ya está cargado)
+    analizar_evolucion_temporal(gdf)
