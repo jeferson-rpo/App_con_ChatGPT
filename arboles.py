@@ -11,7 +11,7 @@ def cargar_datos():
     opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
 
     if opcion == "Cargar archivo desde URL":
-        url = st.text_input("Ingresa la URL del archivo CSV:")
+        url = st.text_input("https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/Base_de_datos_relacionada_con_madera_movilizada_proveniente_de_Plantaciones_Forestales_Comerciales_20250217.csv")
         if url:
             return pd.read_csv(url)
 
