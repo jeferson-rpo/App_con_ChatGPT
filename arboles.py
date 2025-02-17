@@ -77,7 +77,7 @@ def analizar_especies(gdf):
 
     # Gráfico de barras: Top 10 especies con mayor volumen
     st.markdown("---")
-    st.markdown("## Gráfico de Barras: Top 10 Especies con Mayor Volumen Movilizado")
+    st.markdown("## Grafico Top 10 Especies con Mayor Volumen Movilizado")
     st.markdown("---")
 
     # Llamar a la función para graficar
