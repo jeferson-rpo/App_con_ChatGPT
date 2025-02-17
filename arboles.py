@@ -4,10 +4,10 @@ import geopandas as gpd
 import folium
 from folium.plugins import HeatMap
 import zipfile
-import io
 import requests
-from unidecode import unidecode
+import io
 
+# Cargar el archivo CSV de madera movilizada (código previamente mencionado)
 def cargar_datos():
     """
     Permite al usuario cargar un archivo CSV desde una URL o mediante carga manual.
@@ -29,7 +29,7 @@ def cargar_datos():
 
 def cargar_datos_municipios():
     """
-    Carga el archivo de municipios directamente desde la URL proporcionada.
+    Carga el archivo de municipios desde la URL proporcionada.
 
     Returns:
         pd.DataFrame: DataFrame con los datos de municipios.
@@ -45,84 +45,65 @@ def cargar_datos_municipios():
     
     return df_municipios
 
-def cargar_y_relacionar_datos():
+def cargar_mapa_colombia():
     """
-    Carga los datos de madera movilizada y los relaciona con los municipios.
-    
+    Carga y filtra el mapa de Colombia desde el archivo proporcionado.
+
     Returns:
-        pd.DataFrame: DataFrame con los datos relacionados.
+        geopandas.GeoDataFrame: Mapa de Colombia.
     """
-    # Cargar el archivo de madera movilizada desde la URL o mediante carga manual
-    df_madera = cargar_datos()
-    
-    # Cargar los datos de los municipios desde la URL
-    df_municipios = cargar_datos_municipios()
-
-    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) en df_madera usando vectorización
-    df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].str.lower().apply(unidecode)
-
-    # Relacionar los datos de madera movilizada con los municipios sin duplicar columnas
-    df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
-
-    # Interpolación de los valores NaN en las columnas relevantes
-    df_relacionado[['LATITUD', 'LONGITUD', 'VOLUMEN M3']] = df_relacionado[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].interpolate(method='linear', axis=0)
-
-    # Convertir a GeoDataFrame para usar geometría
-    gdf = gpd.GeoDataFrame(df_relacionado, geometry=gpd.points_from_xy(df_relacionado['LONGITUD'], df_relacionado['LATITUD']))
-    
-    return gdf
-
-def cargar_mapa_mundial():
-    """
-    Carga el archivo de mapa mundial de países desde la URL proporcionada.
-    
-    Returns:
-        GeoDataFrame: GeoDataFrame con los límites de los países.
-    """
-    # Cargar el archivo zip desde la URL
+    # URL del mapa de países
     url = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-    response = requests.get(url)
-    with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
-        zf.extractall("mapa")
-    
-    # Cargar el shapefile del mapa de países
-    mapa = gpd.read_file("mapa/ne_50m_admin_0_countries.shp")
-    
-    return mapa
 
-def generar_mapa_calor(gdf, mapa):
+    # Descargar y descomprimir el archivo
+    with requests.get(url) as r:
+        with zipfile.ZipFile(io.BytesIO(r.content)) as zip_ref:
+            # Extraer el archivo de países
+            zip_ref.extractall("/tmp/")
+
+    # Cargar el shapefile de países
+    shapefile_path = "/tmp/ne_50m_admin_0_countries.shp"
+    world = gpd.read_file(shapefile_path)
+
+    # Filtrar el GeoDataFrame para solo incluir Colombia
+    colombia = world[world['NAME'] == 'Colombia']
+
+    return colombia
+
+def generar_mapa_calor(gdf, mapa_colombia):
     """
-    Genera un mapa de calor que muestra la distribución de volúmenes de madera por departamento.
+    Genera un mapa de calor sobre el mapa de Colombia, usando las coordenadas de los municipios y el volumen de madera movilizada.
     
     Args:
-        gdf (GeoDataFrame): GeoDataFrame con los datos de madera movilizada.
-        mapa (GeoDataFrame): GeoDataFrame con los límites de los países.
+        gdf (GeoDataFrame): Datos de madera movilizada.
+        mapa_colombia (GeoDataFrame): Mapa de Colombia.
     """
-    # Crear el mapa base centrado en el centro geográfico del mapa mundial
-    mapa_base = folium.Map(location=[0, 0], zoom_start=2)
-    
-    # Agregar el mapa de países de fondo
-    folium.GeoJson(mapa).add_to(mapa_base)
-    
-    # Preparar los datos para el mapa de calor: cada punto será un municipio con su volumen
-    puntos = gdf[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].values
+    # Crear el mapa base centrado en Colombia
+    mapa_base = folium.Map(location=[4.5709, -74.2973], zoom_start=6)
 
-    # Crear el mapa de calor
-    heat_data = [[point[0], point[1], point[2]] for point in puntos]
+    # Agregar el mapa de Colombia al mapa base
+    folium.GeoJson(mapa_colombia).add_to(mapa_base)
+
+    # Preparar los datos para el mapa de calor
+    heat_data = [
+        [row['LATITUD'], row['LONGITUD'], row['VOLUMEN M3']] 
+        for idx, row in gdf.iterrows()
+        if pd.notna(row['LATITUD']) and pd.notna(row['LONGITUD']) and pd.notna(row['VOLUMEN M3'])
+    ]
+
+    # Agregar el mapa de calor
     HeatMap(heat_data).add_to(mapa_base)
 
     # Mostrar el mapa en Streamlit
-    st.write("### Mapa de Calor de Volúmenes de Madera por Departamento")
-    st.components.v1.html(mapa_base._repr_html_(), height=600)
+    st.write("Mapa de Calor de Madera Movilizada en Colombia")
+    folium_static(mapa_base)
 
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
+mapa_colombia = cargar_mapa_colombia()
 
 if gdf is not None:
-    st.write("Datos cargados:", gdf)
+    st.write("Datos cargados con éxito")
 
-    # Cargar el mapa de países
-    mapa_mundial = cargar_mapa_mundial()
-
-    # Llamar a la función de generación de mapa de calor
-    generar_mapa_calor(gdf, mapa_mundial)
+    # Generar el mapa de calor
+    generar_mapa_calor(gdf, mapa_colombia)
