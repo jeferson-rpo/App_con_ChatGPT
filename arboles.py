@@ -30,11 +30,13 @@ def analizar_especies(gdf):
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
     """
     # Análisis de especies más comunes a nivel país
-    especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+    if 'especies_pais' not in st.session_state:
+        especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+        especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+        st.session_state.especies_pais = especies_pais
 
     st.subheader("Especies de madera más comunes a nivel país")
-    st.write(especies_pais)
+    st.write(st.session_state.especies_pais)
 
     # Seleccionar un departamento para el análisis
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
@@ -43,20 +45,22 @@ def analizar_especies(gdf):
     if 'depto_seleccionado' not in st.session_state:
         st.session_state.depto_seleccionado = depto_seleccionado
 
-    # Si el departamento cambia, actualizar el estado de sesión
+    # Si el departamento cambia, actualizar el análisis
     if st.session_state.depto_seleccionado != depto_seleccionado:
         st.session_state.depto_seleccionado = depto_seleccionado
+        especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
+        especies_depto = especies_depto.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+        especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
+        st.session_state.especies_depto = especies_depto
 
-    # Análisis de especies más comunes por departamento
-    especies_depto = gdf[gdf['DPTO'] == st.session_state.depto_seleccionado]
-    especies_depto = especies_depto.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
-
-    st.subheader(f"Especies de madera más comunes en {st.session_state.depto_seleccionado}")
-    st.write(especies_depto)
+    # Mostrar el análisis del departamento seleccionado
+    if 'especies_depto' in st.session_state:
+        st.subheader(f"Especies de madera más comunes en {st.session_state.depto_seleccionado}")
+        st.write(st.session_state.especies_depto)
 
 st.title("Análisis de Madera Movilizada")
 
+# Cargar datos
 gdf = cargar_datos()
 
 if gdf is not None:
