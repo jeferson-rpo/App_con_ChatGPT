@@ -64,9 +64,18 @@ def analizar_especies(gdf):
     # Análisis de especies más comunes a nivel país
     especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
     especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+    
 
     st.subheader("Especies de madera más comunes a nivel país")
     st.write(especies_pais)
+    
+    # Gráfico de barras: Top 10 especies con mayor volumen
+    st.markdown("---")
+    st.markdown("## Grafico Top 10 Especies con Mayor Volumen Movilizado")
+    st.markdown("---")
+
+    # Llamar a la función para graficar
+    graficar_top_10_especies(especies_pais)
 
     # Seleccionar un departamento para el análisis
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
@@ -79,13 +88,7 @@ def analizar_especies(gdf):
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
 
-    # Gráfico de barras: Top 10 especies con mayor volumen
-    st.markdown("---")
-    st.markdown("## Grafico Top 10 Especies con Mayor Volumen Movilizado")
-    st.markdown("---")
-
-    # Llamar a la función para graficar
-    graficar_top_10_especies(especies_pais)
+    
 
 
 
