@@ -60,17 +60,30 @@ def cargar_y_relacionar_datos():
     # Relacionar los datos de madera movilizada con los municipios sin duplicar columnas
     df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
     
-    return df_relacionado
+    # Convertir el DataFrame a un GeoDataFrame usando las coordenadas de latitud y longitud
+    gdf = gpd.GeoDataFrame(df_relacionado, 
+                           geometry=gpd.points_from_xy(df_relacionado['LONGITUD'], df_relacionado['LATITUD']), 
+                           crs="EPSG:4326")
+    
+    return gdf
 
 def generar_mapa_calor(gdf):
     """
     Genera un mapa de calor basado en los volúmenes de madera movilizada por municipio.
+    Superpone los puntos sobre el mapa de Colombia.
 
     Args:
         gdf (GeoDataFrame): GeoDataFrame con los datos de madera movilizada, incluyendo latitud, longitud y volumen.
     """
+    # Cargar el mapa de Colombia (Shapefile)
+    colombia = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    colombia = colombia[colombia.name == "Colombia"]
+
     # Crear una figura para el mapa
     fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Dibujar el mapa de Colombia
+    colombia.plot(ax=ax, color='lightgray')
 
     # Crear un mapa de calor usando la columna 'VOLUMEN M3' como base para el color
     gdf.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', legend=True, markersize=50)
@@ -92,4 +105,3 @@ if gdf is not None:
 
     # Generar el mapa de calor
     generar_mapa_calor(gdf)
-
