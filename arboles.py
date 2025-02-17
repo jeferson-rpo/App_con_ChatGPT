@@ -140,24 +140,22 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_top_10_especies(especies_pais)
 
-    # Seleccionar un municipio o departamento para el análisis
-    lugar_seleccionado = st.selectbox("Selecciona un municipio o departamento", gdf['MUNICIPIO'].unique())
+    # Seleccionar un departamento para el análisis
+    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
 
     # Filtrar datos por departamento seleccionado
     especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
     especies_depto = especies_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
     especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
 
-    st.subheader(f"Especies de madera más comunes en {lugar_seleccionado}")
-    st.write(especies_lugar)
+    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
+    st.write(especies_depto)
 
-    # Mostrar el mapa de calor de madera movilizada en el municipio seleccionado
+    # Mostrar el mapa de calor de madera movilizada en el departamento seleccionado
     st.markdown("---")
-    st.markdown(f"## Mapa de Calor de Madera Movilizada en {lugar_seleccionado}")
+    st.markdown(f"## Mapa de Calor de Madera Movilizada en {depto_seleccionado}")
     st.markdown("---")
-    graficar_mapa_de_calor_colombia(gdf_lugar)
-
-st.title("Análisis de Madera Movilizada")
+    graficar_mapa_de_calor_colombia(especies_depto)
 
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
