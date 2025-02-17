@@ -102,17 +102,11 @@ def analizar_especies(gdf):
     # Análisis de especies más comunes a nivel país
     especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
     especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
-    
 
-    st.subheader("Especies de madera más comunes a nivel país")
-    st.write(especies_pais)
-    
     # Gráfico de barras: Top 10 especies con mayor volumen
     st.markdown("---")
     st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
     st.markdown("---")
-
-    # Llamar a la función para graficar
     graficar_top_10_especies(especies_pais)
 
     # Seleccionar un departamento para el análisis
@@ -120,18 +114,11 @@ def analizar_especies(gdf):
 
     # Filtrar datos por departamento seleccionado
     especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = especies_depto.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+    especies_depto = especies_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
     especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
-
-    # Mostrar municipio, latitud, longitud y volumen por especie en el departamento seleccionado
-    st.markdown("---")
-    st.subheader(f"Municipios y sus posiciones en {depto_seleccionado}")
-    
-    municipios_depto = gdf[gdf['DPTO'] == depto_seleccionado][['MUNICIPIO', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']]
-    st.write(municipios_depto)
 
 st.title("Análisis de Madera Movilizada")
 
