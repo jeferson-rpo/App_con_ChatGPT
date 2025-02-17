@@ -4,4 +4,4 @@ openpyxl
 geopandas
 matplotlib
 
-
+unidecode
