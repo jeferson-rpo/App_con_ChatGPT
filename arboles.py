@@ -100,10 +100,13 @@ def generar_mapa_municipios(gdf):
         gdf, geometry=gpd.points_from_xy(gdf.LONGITUD, gdf.LATITUD)
     )
 
+    # Cargar un archivo GeoJSON con los límites de Colombia
+    url_geojson_colombia = "https://raw.githubusercontent.com/CodeForSocialGood/colombia-geojson/master/colombia.geojson"
+    colombia = gpd.read_file(url_geojson_colombia)
+
     # Crear el mapa
     fig, ax = plt.subplots(figsize=(10, 8))
-    mundo = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-    mundo[mundo.name == "Colombia"].plot(ax=ax, color='lightgrey')  # Fondo de Colombia
+    colombia.plot(ax=ax, color='lightgrey')  # Fondo de Colombia
     gdf.plot(column='VOLUMEN M3', cmap='OrRd', markersize=50, ax=ax, legend=True,
              legend_kwds={'label': "Volumen de Madera (M3)"})
     plt.title('Volumen de Madera Movilizada por Municipio')
@@ -161,4 +164,3 @@ if gdf is not None:
 
     # Realizar el análisis automáticamente
     analizar_especies(gdf)
-    
