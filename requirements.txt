@@ -4,4 +4,4 @@ openpyxl
 geopandas
 matplotlib
 folium
-folium_static
+
