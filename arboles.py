@@ -32,7 +32,6 @@ def cargar_coordenadas_municipios():
         pd.DataFrame: DataFrame con las coordenadas de los municipios.
     """
     # Cargar un dataset con las coordenadas de los municipios de Colombia
-    # Este es un ejemplo, puedes reemplazarlo con tu propio dataset
     coordenadas_url = "https://raw.githubusercontent.com/jdvelasq/datalabs/master/datasets/divipola/municipios.csv"
     coordenadas = pd.read_csv(coordenadas_url, sep=";")
 
@@ -41,6 +40,24 @@ def cargar_coordenadas_municipios():
     coordenadas.rename(columns={'municipio': 'MUNICIPIO'}, inplace=True)
 
     return coordenadas
+
+def agregar_coordenadas_al_dataset(gdf):
+    """
+    Agrega las coordenadas de los municipios al dataset de madera movilizada.
+
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+
+    Returns:
+        pd.DataFrame: DataFrame con las coordenadas agregadas.
+    """
+    # Cargar coordenadas de los municipios
+    coordenadas = cargar_coordenadas_municipios()
+
+    # Unir los datos de volúmenes con las coordenadas de los municipios
+    gdf_con_coordenadas = gdf.merge(coordenadas, on='MUNICIPIO', how='left')
+
+    return gdf_con_coordenadas
 
 def generar_mapa_municipios(gdf):
     """
@@ -52,7 +69,8 @@ def generar_mapa_municipios(gdf):
     # Crear un GeoDataFrame con las coordenadas de los municipios
     gdf = gpd.GeoDataFrame(
         gdf, geometry=gpd.points_from_xy(gdf.longitud, gdf.latitud)
-    
+    )
+
     # Crear el mapa
     fig, ax = plt.subplots(figsize=(10, 8))
     mundo = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
@@ -84,11 +102,8 @@ def analizar_especies(gdf):
     st.subheader("Especies de madera más comunes a nivel país")
     st.write(especies_pais)
 
-    # Cargar coordenadas de los municipios
-    coordenadas = cargar_coordenadas_municipios()
-
-    # Unir los datos de volúmenes con las coordenadas de los municipios
-    gdf_con_coordenadas = gdf.merge(coordenadas, on='MUNICIPIO', how='left')
+    # Agregar coordenadas al dataset
+    gdf_con_coordenadas = agregar_coordenadas_al_dataset(gdf)
 
     # Mostrar el mapa de municipios con volúmenes
     st.markdown("---")
