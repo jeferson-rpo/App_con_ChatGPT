@@ -173,6 +173,11 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada con geolocalización.
     """
+    
+    # Título antes de mostrar el mapa
+    st.markdown("---")
+    st.markdown("## Mapa de Calor de Madera Movilizada en Colombia")
+    st.markdown("---")
     # Asegurarse de que los valores de VOLUMEN M3 sean numéricos y manejar valores no numéricos
     gdf['VOLUMEN M3'] = pd.to_numeric(gdf['VOLUMEN M3'], errors='coerce')  # Convertir a numérico, valores no válidos se convierten en NaN
     gdf = gdf.dropna(subset=['VOLUMEN M3'])  # Eliminar filas con NaN en la columna 'VOLUMEN M3'
