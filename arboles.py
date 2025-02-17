@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from unidecode import unidecode
+import folium
+from folium.plugins import HeatMap
+import geopandas as gpd
 
 def cargar_datos():
     """
@@ -61,31 +64,25 @@ def cargar_y_relacionar_datos():
     
     return df_relacionado
 
-def graficar_top_10_especies(especies_pais):
+def graficar_mapa_calor(df):
     """
-    Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
-    Cada barra tendrá un color diferente.
+    Genera un mapa de calor interactivo con los datos de volumen movilizado por municipio.
 
     Args:
-        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
+        df (pd.DataFrame): DataFrame con los datos de volumen movilizado y geolocalización.
     """
-    # Seleccionar las 10 especies con mayor volumen
-    top_10_especies = especies_pais.head(10)
+    # Crear un mapa base centrado en Colombia
+    mapa = folium.Map(location=[4.5709, -74.2973], zoom_start=6)
 
-    # Crear una lista de colores para las barras
-    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
+    # Filtrar solo las columnas necesarias para el mapa de calor
+    heat_data = df[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].dropna()
 
-    # Crear el gráfico de barras
-    plt.figure(figsize=(10, 6))
-    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
-    plt.xlabel('Especie')
-    plt.ylabel('Volumen Movilizado (M3)')
-    plt.title('Top 10 Especies con Mayor Volumen Movilizado')
-    plt.xticks(rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
-    plt.tight_layout()  # Ajustar layout para que no se corten las etiquetas
+    # Crear el mapa de calor
+    HeatMap(data=heat_data[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].values, radius=15).add_to(mapa)
 
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(plt)
+    # Mostrar el mapa en Streamlit
+    st.subheader("Mapa de Calor de Volumen Movilizado")
+    st.map(mapa)
 
 def analizar_especies(gdf):
     """
@@ -119,6 +116,9 @@ def analizar_especies(gdf):
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
+
+    # Graficar mapa de calor con la base de datos filtrada por departamento
+    graficar_mapa_calor(especies_depto)
 
 st.title("Análisis de Madera Movilizada")
 
