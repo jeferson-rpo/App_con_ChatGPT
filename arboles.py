@@ -164,8 +164,14 @@ def analizar_especies(gdf):
     graficar_mapa_de_calor_colombia(especies_depto)
 
 def graficar_mapa_de_calor_top_10_municipios(gdf):
+    import geopandas as gpd
+import matplotlib.pyplot as plt
+import pandas as pd
+import streamlit as st
+
+def mostrar_mapa_de_especies_con_menor_volumen(gdf):
     """
-    Muestra el mapa de calor de los 10 municipios con mayor volumen movilizado,
+    Muestra un mapa de calor de las especies de madera con menor volumen movilizado,
     sobre el mapa de Colombia.
 
     Los puntos en el mapa tienen colores y tamaños ajustados según el volumen movilizado (VOLUMEN M3).
@@ -176,20 +182,24 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
     
     # Título antes de mostrar el mapa
     st.markdown("---")
-    st.markdown("## Mapa de Calor de Madera Movilizada en Colombia")
+    st.markdown("## Mapa de Especies con Menor Volumen Movilizado en Colombia")
     st.markdown("---")
+
     # Asegurarse de que los valores de VOLUMEN M3 sean numéricos y manejar valores no numéricos
     gdf['VOLUMEN M3'] = pd.to_numeric(gdf['VOLUMEN M3'], errors='coerce')  # Convertir a numérico, valores no válidos se convierten en NaN
     gdf = gdf.dropna(subset=['VOLUMEN M3'])  # Eliminar filas con NaN en la columna 'VOLUMEN M3'
 
-    # Agrupar los datos por municipio y sumar el volumen de madera movilizada
-    top_10_municipios = gdf.groupby('MUNICIPIO')['VOLUMEN M3'].sum().reset_index()
+    # Agrupar los datos por especie y calcular el volumen total de madera movilizada
+    especies_volumen = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
 
-    # Ordenar por el volumen y seleccionar los 10 municipios con mayor volumen
-    top_10_municipios = top_10_municipios.sort_values(by='VOLUMEN M3', ascending=False).head(10)
+    # Ordenar por volumen de menor a mayor
+    especies_volumen = especies_volumen.sort_values(by='VOLUMEN M3', ascending=True)
 
-    # Filtrar gdf para incluir solo los datos de los 10 municipios seleccionados
-    gdf_top_10 = gdf[gdf['MUNICIPIO'].isin(top_10_municipios['MUNICIPIO'])]
+    # Seleccionar las 10 especies con menor volumen movilizado
+    especies_menor_volumen = especies_volumen.head(10)
+
+    # Filtrar gdf para incluir solo las especies con menor volumen
+    gdf_menor_volumen = gdf[gdf['ESPECIE'].isin(especies_menor_volumen['ESPECIE'])]
 
     # Cargar el archivo GeoJSON de países y filtrar solo Colombia
     ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
@@ -197,22 +207,24 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
     colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
 
     # Crear un GeoDataFrame a partir de los datos de madera movilizada
-    gdf_top_10['geometry'] = gpd.points_from_xy(gdf_top_10['LONGITUD'], gdf_top_10['LATITUD'])
-    gdf_top_10 = gpd.GeoDataFrame(gdf_top_10, geometry='geometry')
+    gdf_menor_volumen['geometry'] = gpd.points_from_xy(gdf_menor_volumen['LONGITUD'], gdf_menor_volumen['LATITUD'])
+    gdf_menor_volumen = gpd.GeoDataFrame(gdf_menor_volumen, geometry='geometry')
 
     # Crear un gráfico del mapa de Colombia
     fig, ax = plt.subplots(figsize=(10, 10))
     colombia_dataframe.plot(ax=ax, color='lightgray')
 
-    # Superponer el mapa de calor con los puntos de los 10 municipios seleccionados
-    gdf_top_10.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', markersize=gdf_top_10['VOLUMEN M3'] / 100, alpha=0.7, legend=True)
+    # Superponer el mapa de calor con los puntos de las especies con menor volumen movilizado
+    gdf_menor_volumen.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', 
+                           markersize=gdf_menor_volumen['VOLUMEN M3'] / 100, alpha=0.7, legend=True)
 
     # Añadir título y mostrar el mapa
-    ax.set_title('Mapa de Calor de los 10 Municipios con Mayor Volumen Movilizado', fontsize=15)
+    ax.set_title('Mapa de Calor de las Especies con Menor Volumen Movilizado', fontsize=15)
     plt.tight_layout()
 
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
+
 
 def analizar_evolucion_temporal(gdf):
     """
