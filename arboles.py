@@ -21,24 +21,35 @@ def cargar_datos():
         if archivo:
             return pd.read_csv(archivo)
 
+def cargar_datos_municipios():
+    """
+    Carga el archivo de municipios directamente desde la URL proporcionada.
+
+    Returns:
+        pd.DataFrame: DataFrame con los datos de municipios.
+    """
+    url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
+    df_municipios = pd.read_csv(url_municipios)
+
+    # Asegurarse de que los nombres de los municipios estén en el mismo formato (capitalización correcta)
+    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.title()  # Convierte a formato "Primera letra mayúscula"
+    
+    return df_municipios
+
 def cargar_y_relacionar_datos():
     """
-    Carga los datos de dos fuentes y realiza la relación entre los municipios.
+    Carga los datos de madera movilizada y los relaciona con los municipios.
     
     Returns:
         pd.DataFrame: DataFrame con los datos relacionados.
     """
-    # Cargar el primer archivo CSV (madera movilizada)
+    # Cargar el archivo de madera movilizada desde la URL o mediante carga manual
     df_madera = cargar_datos()
     
-    # Cargar el segundo archivo CSV (con coordenadas y nombres de municipios)
-    df_municipios = cargar_datos()
+    # Cargar los datos de los municipios desde la URL
+    df_municipios = cargar_datos_municipios()
 
-    # Asegurarse de que los nombres de municipios estén en el mismo formato (capitalización correcta)
-    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.title()  # Convierte a formato "Primera letra mayúscula"
-
-    # Ahora puedes relacionar el DataFrame de madera movilizada con el de municipios, asumiendo que
-    # ambos tienen una columna en común, por ejemplo, 'NOM_MPIO'.
+    # Relacionar los datos de madera movilizada con los municipios
     df_relacionado = df_madera.merge(df_municipios, how="left", on="NOM_MPIO")
     
     return df_relacionado
@@ -48,3 +59,4 @@ df_relacionado = cargar_y_relacionar_datos()
 
 # Mostrar el DataFrame relacionado
 st.write(df_relacionado)
+
