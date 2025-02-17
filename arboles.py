@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from unidecode import unidecode
+import folium
 
 def cargar_datos():
     """
@@ -89,7 +90,8 @@ def graficar_top_10_especies(especies_pais):
 
 def analizar_especies(gdf):
     """
-    Realiza el análisis de las especies más comunes a nivel país y por departamento.
+    Realiza el análisis de las especies más comunes a nivel país y por departamento,
+    incluyendo los municipios y sus coordenadas.
 
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
@@ -110,7 +112,7 @@ def analizar_especies(gdf):
     st.markdown("---")
     st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
     st.markdown("---")
-
+    
     # Llamar a la función para graficar
     graficar_top_10_especies(especies_pais)
 
@@ -124,11 +126,21 @@ def analizar_especies(gdf):
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
-
-    # Mostrar municipios y su posición (latitud y longitud) asociados al departamento seleccionado
+    
+    # Mostrar los municipios y sus coordenadas asociadas
+    st.markdown(f"### Municipios de {depto_seleccionado} con sus Coordenadas")
+    
     municipios_depto = gdf[gdf['DPTO'] == depto_seleccionado][['MUNICIPIO', 'LATITUD', 'LONGITUD']].drop_duplicates()
-    st.subheader(f"Municipios en {depto_seleccionado} y su posición geográfica")
     st.write(municipios_depto)
+
+    # Opción de mostrar la posición de los municipios en el mapa (si lo deseas)
+    st.markdown("#### Mapa de Municipios Seleccionados")
+    mapa = folium.Map(location=[municipios_depto['LATITUD'].mean(), municipios_depto['LONGITUD'].mean()], zoom_start=8)
+
+    for _, row in municipios_depto.iterrows():
+        folium.Marker([row['LATITUD'], row['LONGITUD']], popup=row['MUNICIPIO']).add_to(mapa)
+
+    st.map(mapa)
 
 st.title("Análisis de Madera Movilizada")
 
