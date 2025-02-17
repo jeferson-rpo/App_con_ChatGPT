@@ -325,18 +325,6 @@ def agrupar_por_municipio(gdf):
 
     # Mostrar la tabla con el volumen total por municipio
     st.write(volumen_por_municipio)
-import folium
-from folium.plugins import MarkerCluster
-
-import pandas as pd
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import streamlit as st
-
-import pandas as pd
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import streamlit as st
 
 def analizar_especies_con_menor_volumen(gdf):
     """
@@ -385,11 +373,7 @@ def analizar_especies_con_menor_volumen(gdf):
     st.write(f"Datos después de filtrado y conversión: {gdf_menor_volumen_agrupado.shape[0]} filas.")
     st.write(gdf_menor_volumen_agrupado[['LATITUD', 'LONGITUD', 'ESPECIE', 'VOLUMEN M3']].head())
 
-    # Si no hay datos, mostrar un mensaje y detener el proceso
-    if gdf_menor_volumen_agrupado.shape[0] == 0:
-        st.warning("No hay suficientes datos válidos para mostrar en el mapa.")
-        return
-
+    
     # Cargar el archivo GeoJSON de países y filtrar solo Colombia
     ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
     mundo_dataframe = gpd.read_file(ruta_0)
@@ -406,7 +390,7 @@ def analizar_especies_con_menor_volumen(gdf):
     # Superponer el mapa de calor con los puntos de las especies con menor volumen movilizado
     # Aumentar el tamaño de los puntos multiplicando el tamaño de los marcadores
     gdf_menor_volumen_agrupado.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', 
-                                    markersize=gdf_menor_volumen_agrupado['VOLUMEN M3'] * 0.2, alpha=0.7, legend=True)
+                                    markersize=gdf_menor_volumen_agrupado['VOLUMEN M3'] * 2, alpha=0.7, legend=True)
 
     # Añadir título y mostrar el mapa
     ax.set_title('Distribución Geográfica de las Especies con Menor Volumen Movilizado', fontsize=15)
