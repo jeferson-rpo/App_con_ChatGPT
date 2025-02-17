@@ -1,22 +1,19 @@
 import streamlit as st
 import pandas as pd
+import geopandas as gpd
 import matplotlib.pyplot as plt
 from unidecode import unidecode
 
-def cargar_datos():
+# Cargar los datos de madera movilizada y municipios
+def cargar_datos_madera():
     """
-    Permite al usuario cargar un archivo CSV desde una URL o mediante carga manual.
-
-    Returns:
-        pd.DataFrame: DataFrame con los datos cargados.
+    Permite al usuario cargar un archivo CSV con los datos de madera movilizada.
     """
     opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
-
     if opcion == "Cargar archivo desde URL":
         url = st.text_input("Ingresa la URL del archivo CSV")
         if url:
             return pd.read_csv(url)
-
     elif opcion == "Subir archivo":
         archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
         if archivo:
@@ -48,7 +45,7 @@ def cargar_y_relacionar_datos():
         pd.DataFrame: DataFrame con los datos relacionados.
     """
     # Cargar el archivo de madera movilizada desde la URL o mediante carga manual
-    df_madera = cargar_datos()
+    df_madera = cargar_datos_madera()
     
     # Cargar los datos de los municipios desde la URL
     df_municipios = cargar_datos_municipios()
@@ -61,72 +58,49 @@ def cargar_y_relacionar_datos():
     
     return df_relacionado
 
-def graficar_top_10_especies(especies_pais):
+def generar_mapa_calor(gdf):
     """
-    Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
-    Cada barra tendrá un color diferente.
-
+    Genera un mapa de calor de los municipios según el volumen de madera movilizada.
+    
     Args:
-        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
+        gdf (GeoDataFrame): DataFrame con los datos relacionados y coordenadas geográficas.
     """
-    # Seleccionar las 10 especies con mayor volumen
-    top_10_especies = especies_pais.head(10)
+    # Cargar el mapa de Colombia
+    url = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    colombia = gpd.read_file(url)
+    colombia = colombia[colombia['NAME'] == 'Colombia']
 
-    # Crear una lista de colores para las barras
-    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
+    # Crear un GeoDataFrame con las coordenadas de los municipios y el volumen
+    gdf_madera = gpd.GeoDataFrame(
+        gdf, 
+        geometry=gpd.points_from_xy(gdf['LONGITUD'], gdf['LATITUD']),
+        crs="EPSG:4326"
+    )
 
-    # Crear el gráfico de barras
-    plt.figure(figsize=(10, 6))
-    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
-    plt.xlabel('Especie')
-    plt.ylabel('Volumen Movilizado (M3)')
-    plt.title('Top 10 Especies con Mayor Volumen Movilizado')
-    plt.xticks(rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
-    plt.tight_layout()  # Ajustar layout para que no se corten las etiquetas
+    # Establecer el CRS de Colombia y el de los municipios a uno común
+    gdf_madera = gdf_madera.to_crs(colombia.crs)
 
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(plt)
+    # Crear la figura y los ejes
+    fig, ax = plt.subplots(1, 1, figsize=(12, 12))
 
-def analizar_especies(gdf):
-    """
-    Realiza el análisis de las especies más comunes a nivel país y por departamento.
+    # Dibujar el mapa de Colombia
+    colombia.plot(ax=ax, color='lightgray', edgecolor='black')
 
-    Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
-    """
-    # Título grande para el análisis
-    st.markdown("---")
-    st.markdown("## Análisis de Especies de Madera Movilizada")
-    st.markdown("---")
+    # Graficar los puntos de los municipios con el volumen como color
+    gdf_madera.plot(ax=ax, marker='o', color=gdf_madera['VOLUMEN M3'], cmap='YlOrRd', markersize=50, legend=True)
 
-    # Análisis de especies más comunes a nivel país
-    especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+    # Añadir título y etiquetas
+    ax.set_title('Mapa de Calor: Volumen de Madera Movilizada por Municipio', fontsize=16)
+    ax.set_xlabel('Longitud')
+    ax.set_ylabel('Latitud')
 
-    # Gráfico de barras: Top 10 especies con mayor volumen
-    st.markdown("---")
-    st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
-    st.markdown("---")
-    graficar_top_10_especies(especies_pais)
+    # Mostrar el mapa
+    st.pyplot(fig)
 
-    # Seleccionar un departamento para el análisis
-    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
-
-    # Filtrar datos por departamento seleccionado
-    especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = especies_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
-    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
-
-    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
-    st.write(especies_depto)
-
-st.title("Análisis de Madera Movilizada")
-
-# Cargar datos
+# Cargar y procesar los datos
 gdf = cargar_y_relacionar_datos()
 
+# Generar el mapa de calor si los datos fueron cargados correctamente
 if gdf is not None:
-    st.write("Datos cargados:", gdf)
+    generar_mapa_calor(gdf)
 
-    # Realizar el análisis automáticamente
-    analizar_especies(gdf)
