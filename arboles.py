@@ -61,20 +61,20 @@ def generar_mapa_calor(gdf):
     # Agrupar los datos por departamento y sumar el volumen
     volumen_por_depto = gdf.groupby('DPTO')['VOLUMEN M3'].sum().reset_index()
 
-    # Cargar el archivo GeoJSON de Colombia (o el país correspondiente)
-    # Nota: Necesitas un archivo GeoJSON con los límites de los departamentos.
-    # Puedes encontrar uno en https://github.com/johan/world.geo.json
-    geojson_url = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries/COL/colombia.geojson"
-    mapa_colombia = gpd.read_file(geojson_url)
+    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
+    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    mundo_dataframe = gpd.read_file(ruta_0)
+    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
 
-    # Unir los datos de volumen con el GeoDataFrame
-    mapa_colombia = mapa_colombia.merge(volumen_por_depto, left_on='name', right_on='DPTO', how='left')
+    # Unir los datos de volumen con el GeoDataFrame de Colombia
+    # Nota: Asegúrate de que los nombres de los departamentos coincidan con los del GeoJSON.
+    colombia_dataframe = colombia_dataframe.merge(volumen_por_depto, left_on='NAME', right_on='DPTO', how='left')
 
     # Crear el mapa de calor
     fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-    mapa_colombia.plot(column='VOLUMEN M3', cmap='OrRd', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True,
-                       missing_kwds={"color": "lightgrey", "label": "Sin datos"})
-    plt.title('Distribución de Volúmenes de Madera por Departamento')
+    colombia_dataframe.plot(column='VOLUMEN M3', cmap='OrRd', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True,
+                            missing_kwds={"color": "lightgrey", "label": "Sin datos"})
+    plt.title('Distribución de Volúmenes de Madera por Departamento en Colombia')
     plt.axis('off')  # Ocultar ejes
 
     # Mostrar el mapa en Streamlit
@@ -105,9 +105,9 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_top_10_especies(especies_pais)
 
-    # Mapa de calor: Distribución de volúmenes por departamento
+    # Mapa de calor: Distribución de volúmenes por departamento en Colombia
     st.markdown("---")
-    st.markdown("## Mapa de Calor: Distribución de Volúmenes por Departamento")
+    st.markdown("## Mapa de Calor: Distribución de Volúmenes por Departamento en Colombia")
     st.markdown("---")
     generar_mapa_calor(gdf)
 
