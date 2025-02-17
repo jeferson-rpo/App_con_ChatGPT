@@ -22,20 +22,27 @@ def cargar_datos():
 
     return None
 
-def analizar_especies(gdf, depto_seleccionado):
+def analizar_especies(gdf):
     """
     Realiza el análisis de las especies más comunes a nivel país y por departamento.
 
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
-        depto_seleccionado (str): Departamento seleccionado para el análisis.
     """
+    # Título grande para el análisis
+    st.markdown("---")
+    st.markdown("## Análisis de Especies de Madera Movilizada")
+    st.markdown("---")
+
     # Análisis de especies más comunes a nivel país
     especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
     especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
 
     st.subheader("Especies de madera más comunes a nivel país")
     st.write(especies_pais)
+
+    # Seleccionar un departamento para el análisis
+    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
 
     # Filtrar datos por departamento seleccionado
     especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
@@ -53,9 +60,5 @@ gdf = cargar_datos()
 if gdf is not None:
     st.write("Datos cargados:", gdf)
 
-    # Seleccionar un departamento para el análisis
-    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
-
-    # Botón para realizar el análisis
-    if st.button("Analizar Especies"):
-        analizar_especies(gdf, depto_seleccionado)
+    # Realizar el análisis automáticamente
+    analizar_especies(gdf)
