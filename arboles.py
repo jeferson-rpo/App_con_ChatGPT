@@ -182,7 +182,7 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
     gdf['VOLUMEN M3'] = pd.to_numeric(gdf['VOLUMEN M3'], errors='coerce')  # Convertir a numérico, valores no válidos se convierten en NaN
     gdf = gdf.dropna(subset=['VOLUMEN M3'])  # Eliminar filas con NaN en la columna 'VOLUMEN M3'
 
-    # Filtrar los 10 municipios con mayor volumen movilizado
+    # Agrupar los datos por municipio y calcular el volumen total por municipio
     top_10_municipios = gdf.groupby('MUNICIPIO')['VOLUMEN M3'].sum().reset_index()
     top_10_municipios = top_10_municipios.sort_values(by='VOLUMEN M3', ascending=False).head(10)
 
@@ -206,6 +206,7 @@ def graficar_mapa_de_calor_top_10_municipios(gdf):
 
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
+
 
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
