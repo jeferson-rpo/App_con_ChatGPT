@@ -249,6 +249,51 @@ def analizar_evolucion_temporal(gdf):
     # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
 
+def analizar_outliers(gdf):
+    """
+    Realiza un análisis estadístico para identificar outliers en los volúmenes de madera movilizada.
+    
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+    """
+    # Título para la sección
+    st.markdown("---")
+    st.markdown("## Análisis Estadístico de Outliers en el Volumen de Madera Movilizada")
+    st.markdown("---")
+
+    # Calcular los cuartiles (Q1, Q3) y el IQR (Rango Intercuartílico)
+    Q1 = gdf['VOLUMEN M3'].quantile(0.25)
+    Q3 = gdf['VOLUMEN M3'].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Calcular los límites para los outliers
+    limite_inferior = Q1 - 1.5 * IQR
+    limite_superior = Q3 + 1.5 * IQR
+
+    # Filtrar los outliers
+    outliers = gdf[(gdf['VOLUMEN M3'] < limite_inferior) | (gdf['VOLUMEN M3'] > limite_superior)]
+
+    # Mostrar estadísticas y los outliers detectados
+    st.write("Rango Intercuartílico (IQR):", IQR)
+    st.write(f"Límite inferior: {limite_inferior}")
+    st.write(f"Límite superior: {limite_superior}")
+    
+    st.write(f"Se han detectado {outliers.shape[0]} outliers en los datos.")
+    
+    # Mostrar los outliers en una tabla
+    st.write("Outliers detectados:", outliers)
+
+    # Mostrar un gráfico de caja (boxplot) para visualizar los outliers
+    plt.figure(figsize=(10, 6))
+    plt.boxplot(gdf['VOLUMEN M3'], vert=False)
+    plt.xlabel('Volumen Movilizado (M3)')
+    plt.title('Gráfico de Caja para Identificar Outliers en Volúmenes de Madera Movilizada')
+    plt.tight_layout()
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(plt)
+
+
 
 
 
@@ -263,3 +308,5 @@ if gdf is not None:
     graficar_mapa_de_calor_top_10_municipios(gdf)
     # Llamada a la función de análisis (suponiendo que gdf ya está cargado)
     analizar_evolucion_temporal(gdf)
+    # Llamada a la función de análisis (suponiendo que gdf ya está cargado)
+    analizar_outliers(gdf)
