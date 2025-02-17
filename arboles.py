@@ -140,12 +140,6 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_top_10_especies(especies_pais)
 
-    # Mapa de calor de madera movilizada en Colombia
-    st.markdown("---")
-    st.markdown("## Mapa de Calor de Madera Movilizada en Colombia")
-    st.markdown("---")
-    graficar_mapa_de_calor_colombia(gdf)
-
     # Seleccionar un municipio o departamento para el análisis
     lugar_seleccionado = st.selectbox("Selecciona un municipio o departamento", gdf['MUNICIPIO'].unique())
 
@@ -156,6 +150,12 @@ def analizar_especies(gdf):
 
     st.subheader(f"Especies de madera más comunes en {lugar_seleccionado}")
     st.write(especies_lugar)
+
+    # Mostrar el mapa de calor de madera movilizada en el municipio seleccionado
+    st.markdown("---")
+    st.markdown(f"## Mapa de Calor de Madera Movilizada en {lugar_seleccionado}")
+    st.markdown("---")
+    graficar_mapa_de_calor_colombia(gdf_lugar)
 
 st.title("Análisis de Madera Movilizada")
 
