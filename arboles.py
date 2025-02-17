@@ -67,7 +67,10 @@ def cargar_y_relacionar_datos():
     # Interpolación de los valores NaN en las columnas relevantes
     df_relacionado[['LATITUD', 'LONGITUD', 'VOLUMEN M3']] = df_relacionado[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].interpolate(method='linear', axis=0)
 
-    return df_relacionado
+    # Convertir a GeoDataFrame para usar geometría
+    gdf = gpd.GeoDataFrame(df_relacionado, geometry=gpd.points_from_xy(df_relacionado['LONGITUD'], df_relacionado['LATITUD']))
+    
+    return gdf
 
 def cargar_mapa_mundial():
     """
@@ -92,7 +95,7 @@ def generar_mapa_calor(gdf, mapa):
     Genera un mapa de calor que muestra la distribución de volúmenes de madera por departamento.
     
     Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+        gdf (GeoDataFrame): GeoDataFrame con los datos de madera movilizada.
         mapa (GeoDataFrame): GeoDataFrame con los límites de los países.
     """
     # Crear el mapa base centrado en el centro geográfico del mapa mundial
@@ -123,4 +126,3 @@ if gdf is not None:
 
     # Llamar a la función de generación de mapa de calor
     generar_mapa_calor(gdf, mapa_mundial)
-
