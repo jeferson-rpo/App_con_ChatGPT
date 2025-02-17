@@ -146,16 +146,16 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_mapa_de_calor_colombia(gdf)
 
-    # Seleccionar un departamento para el análisis
-    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
+    # Seleccionar un municipio o departamento para el análisis
+    lugar_seleccionado = st.selectbox("Selecciona un municipio o departamento", gdf['MUNICIPIO'].unique())
 
-    # Filtrar datos por departamento seleccionado
-    gdf_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = gdf_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
-    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
+    # Filtrar datos por municipio o departamento seleccionado
+    gdf_lugar = gdf[gdf['MUNICIPIO'] == lugar_seleccionado]
+    especies_lugar = gdf_lugar.groupby(['ESPECIE', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
+    especies_lugar = especies_lugar.sort_values(by='VOLUMEN M3', ascending=False)
 
-    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
-    st.write(especies_depto)
+    st.subheader(f"Especies de madera más comunes en {lugar_seleccionado}")
+    st.write(especies_lugar)
 
 st.title("Análisis de Madera Movilizada")
 
