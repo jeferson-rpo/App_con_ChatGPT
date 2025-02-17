@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import geopandas as gpd
 from unidecode import unidecode
-import folium
-from folium.plugins import HeatMap
 
 def cargar_datos():
     """
@@ -35,7 +34,8 @@ def cargar_datos_municipios():
     df_municipios = pd.read_csv(url_municipios)
 
     # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
-    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].
+    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.lower().apply(unidecode)
+    
     # Seleccionar solo las columnas necesarias
     df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]
     
@@ -88,28 +88,33 @@ def graficar_top_10_especies(especies_pais):
     # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
 
-def graficar_mapa_calor(df):
+def graficar_mapa_calor(df, depto_seleccionado):
     """
-    Genera un mapa de calor para visualizar la distribución geográfica de las especies de madera movilizada
-    según el departamento seleccionado.
+    Muestra un mapa de calor con la latitud y longitud de los municipios, basado en el volumen de madera movilizada.
 
     Args:
-        df (pd.DataFrame): DataFrame con las especies de madera movilizada filtradas por departamento.
+        df (pd.DataFrame): DataFrame con los datos relacionados, incluyendo la latitud, longitud y volumen de madera.
+        depto_seleccionado (str): El nombre del departamento seleccionado para el análisis.
     """
-    # Crear el mapa centrado en el centro de Colombia
-    mapa = folium.Map(location=[4.5709, -74.2973], zoom_start=6)
+    # Filtrar datos por departamento
+    df_depto = df[df['DPTO'] == depto_seleccionado]
 
-    # Filtrar las columnas de latitud y longitud
-    heat_data = df[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].dropna()
+    # Convertir el DataFrame a un GeoDataFrame
+    gdf = gpd.GeoDataFrame(df_depto, geometry=gpd.points_from_xy(df_depto['LONGITUD'], df_depto['LATITUD']))
+    
+    # Establecer el CRS (Sistema de Referencia de Coordenadas)
+    gdf.set_crs("EPSG:4326", allow_override=True, inplace=True)
 
-    # Agregar el HeatMap al mapa
-    HeatMap(data=heat_data[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].values.tolist()).add_to(mapa)
-
+    # Crear el mapa de calor
+    plt.figure(figsize=(10, 6))
+    ax = gdf.plot(kind='scatter', x='LONGITUD', y='LATITUD', c='VOLUMEN M3', cmap='YlOrRd', alpha=0.7, edgecolors='k', s=30, figsize=(10, 6))
+    ax.set_title(f'Mapa de Calor - Volumen de Madera Movilizada en {depto_seleccionado}')
+    ax.set_xlabel('Longitud')
+    ax.set_ylabel('Latitud')
+    plt.tight_layout()
+    
     # Mostrar el mapa en Streamlit
-    st.markdown("---")
-    st.markdown("## Mapa de Calor: Distribución Geográfica de Especies")
-    st.markdown("---")
-    st.write(mapa)
+    st.pyplot(plt)
 
 def analizar_especies(gdf):
     """
@@ -144,8 +149,11 @@ def analizar_especies(gdf):
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
 
-    # Graficar mapa de calor para el departamento seleccionado
-    graficar_mapa_calor(especies_depto)
+    # Mapa de calor para el departamento seleccionado
+    st.markdown("---")
+    st.markdown("## Mapa de Calor de Madera Movilizada")
+    st.markdown("---")
+    graficar_mapa_calor(gdf, depto_seleccionado)
 
 st.title("Análisis de Madera Movilizada")
 
