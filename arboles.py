@@ -150,8 +150,8 @@ def analizar_especies(gdf):
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
 
     # Filtrar datos por departamento seleccionado
-    especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = especies_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
+    gdf_depto = gdf[gdf['DPTO'] == depto_seleccionado]
+    especies_depto = gdf_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
     especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
