@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import geopandas as gpd
+from matplotlib.colors import Normalize
 
 def cargar_datos():
     """
@@ -49,6 +51,35 @@ def graficar_top_10_especies(especies_pais):
     # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
 
+def generar_mapa_calor(gdf):
+    """
+    Genera un mapa de calor que muestra la distribución de volúmenes de madera por departamento.
+
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+    """
+    # Agrupar los datos por departamento y sumar el volumen
+    volumen_por_depto = gdf.groupby('DPTO')['VOLUMEN M3'].sum().reset_index()
+
+    # Cargar el archivo GeoJSON de Colombia (o el país correspondiente)
+    # Nota: Necesitas un archivo GeoJSON con los límites de los departamentos.
+    # Puedes encontrar uno en https://github.com/johan/world.geo.json
+    geojson_url = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries/COL/colombia.geojson"
+    mapa_colombia = gpd.read_file(geojson_url)
+
+    # Unir los datos de volumen con el GeoDataFrame
+    mapa_colombia = mapa_colombia.merge(volumen_por_depto, left_on='name', right_on='DPTO', how='left')
+
+    # Crear el mapa de calor
+    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+    mapa_colombia.plot(column='VOLUMEN M3', cmap='OrRd', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True,
+                       missing_kwds={"color": "lightgrey", "label": "Sin datos"})
+    plt.title('Distribución de Volúmenes de Madera por Departamento')
+    plt.axis('off')  # Ocultar ejes
+
+    # Mostrar el mapa en Streamlit
+    st.pyplot(fig)
+
 def analizar_especies(gdf):
     """
     Realiza el análisis de las especies más comunes a nivel país y por departamento.
@@ -64,18 +95,21 @@ def analizar_especies(gdf):
     # Análisis de especies más comunes a nivel país
     especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
     especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
-    
 
     st.subheader("Especies de madera más comunes a nivel país")
     st.write(especies_pais)
-    
+
     # Gráfico de barras: Top 10 especies con mayor volumen
     st.markdown("---")
-    st.markdown("## Grafico Top 10 Especies con Mayor Volumen Movilizado")
+    st.markdown("## Gráfico de Barras: Top 10 Especies con Mayor Volumen Movilizado")
     st.markdown("---")
-
-    # Llamar a la función para graficar
     graficar_top_10_especies(especies_pais)
+
+    # Mapa de calor: Distribución de volúmenes por departamento
+    st.markdown("---")
+    st.markdown("## Mapa de Calor: Distribución de Volúmenes por Departamento")
+    st.markdown("---")
+    generar_mapa_calor(gdf)
 
     # Seleccionar un departamento para el análisis
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
@@ -87,10 +121,6 @@ def analizar_especies(gdf):
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
-
-    
-
-
 
 st.title("Análisis de Madera Movilizada")
 
