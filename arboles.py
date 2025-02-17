@@ -399,8 +399,6 @@ def analizar_especies_con_menor_volumen(gdf):
     # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
 
-
-
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
 
