@@ -314,19 +314,6 @@ def agrupar_por_municipio(gdf):
     # Mostrar la tabla con el volumen total por municipio
     st.write(volumen_por_municipio)
 
-    # Mostrar un gráfico de barras con el volumen total por municipio
-    plt.figure(figsize=(12, 8))
-    plt.barh(volumen_por_municipio['MUNICIPIO'], volumen_por_municipio['VOLUMEN M3'], color='steelblue')
-    plt.xlabel('Volumen Total de Madera Movilizada (M3)')
-    plt.ylabel('Municipio')
-    plt.title('Volumen Total de Madera Movilizada por Municipio')
-    plt.tight_layout()
-
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(plt)
-
-
-
 
 
 
