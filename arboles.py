@@ -163,6 +163,50 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_mapa_de_calor_colombia(especies_depto)
 
+def graficar_mapa_de_calor_top_10_municipios(gdf):
+    """
+    Muestra el mapa de calor de los 10 municipios con mayor volumen movilizado,
+    sobre el mapa de Colombia.
+
+    Los puntos en el mapa tienen colores y tamaños ajustados según el volumen movilizado (VOLUMEN M3).
+
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada con geolocalización.
+    """
+    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
+    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    mundo_dataframe = gpd.read_file(ruta_0)
+    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
+
+    # Asegurarse de que los valores de VOLUMEN M3 sean numéricos y manejar valores no numéricos
+    gdf['VOLUMEN M3'] = pd.to_numeric(gdf['VOLUMEN M3'], errors='coerce')  # Convertir a numérico, valores no válidos se convierten en NaN
+    gdf = gdf.dropna(subset=['VOLUMEN M3'])  # Eliminar filas con NaN en la columna 'VOLUMEN M3'
+
+    # Filtrar los 10 municipios con mayor volumen movilizado
+    top_10_municipios = gdf.groupby('MUNICIPIO')['VOLUMEN M3'].sum().reset_index()
+    top_10_municipios = top_10_municipios.sort_values(by='VOLUMEN M3', ascending=False).head(10)
+
+    # Filtrar gdf para incluir solo los datos de los 10 municipios con mayor volumen
+    gdf_top_10 = gdf[gdf['MUNICIPIO'].isin(top_10_municipios['MUNICIPIO'])]
+
+    # Crear un GeoDataFrame a partir de los datos de madera movilizada
+    gdf_top_10['geometry'] = gpd.points_from_xy(gdf_top_10['LONGITUD'], gdf_top_10['LATITUD'])
+    gdf_top_10 = gpd.GeoDataFrame(gdf_top_10, geometry='geometry')
+
+    # Crear un gráfico del mapa de Colombia
+    fig, ax = plt.subplots(figsize=(10, 10))
+    colombia_dataframe.plot(ax=ax, color='lightgray')
+
+    # Superponer el mapa de calor con los puntos de los 10 municipios seleccionados
+    gdf_top_10.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', markersize=gdf_top_10['VOLUMEN M3'] / 100, alpha=0.7, legend=True)
+
+    # Añadir título y mostrar el mapa
+    ax.set_title('Mapa de Calor de los 10 Municipios con Mayor Volumen Movilizado', fontsize=15)
+    plt.tight_layout()
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(fig)
+
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
 
@@ -171,3 +215,4 @@ if gdf is not None:
 
     # Realizar el análisis automáticamente
     analizar_especies(gdf)
+    graficar_mapa_de_calor_top_10_municipios(gdf)
