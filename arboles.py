@@ -293,6 +293,39 @@ def analizar_outliers(gdf):
     # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
 
+def agrupar_por_municipio(gdf):
+    """
+    Agrupa los datos por municipio y calcula el volumen total de madera movilizada en cada uno.
+    
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+    """
+    # Título para la sección
+    st.markdown("---")
+    st.markdown("## Volumen Total de Madera Movilizada por Municipio")
+    st.markdown("---")
+
+    # Agrupar los datos por municipio y calcular el volumen total de madera movilizada
+    volumen_por_municipio = gdf.groupby('MUNICIPIO')['VOLUMEN M3'].sum().reset_index()
+
+    # Ordenar por el volumen total de mayor a menor
+    volumen_por_municipio = volumen_por_municipio.sort_values(by='VOLUMEN M3', ascending=False)
+
+    # Mostrar la tabla con el volumen total por municipio
+    st.write(volumen_por_municipio)
+
+    # Mostrar un gráfico de barras con el volumen total por municipio
+    plt.figure(figsize=(12, 8))
+    plt.barh(volumen_por_municipio['MUNICIPIO'], volumen_por_municipio['VOLUMEN M3'], color='steelblue')
+    plt.xlabel('Volumen Total de Madera Movilizada (M3)')
+    plt.ylabel('Municipio')
+    plt.title('Volumen Total de Madera Movilizada por Municipio')
+    plt.tight_layout()
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(plt)
+
+
 
 
 
@@ -310,3 +343,5 @@ if gdf is not None:
     analizar_evolucion_temporal(gdf)
     # Llamada a la función de análisis (suponiendo que gdf ya está cargado)
     analizar_outliers(gdf)
+    # Llamada a la función de agrupamiento (suponiendo que gdf ya está cargado)
+    agrupar_por_municipio(gdf)
