@@ -1,49 +1,50 @@
-import requests
-import zipfile
-import io
-import geopandas as gpd
+import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
-# Paso 1: Descargar y extraer el archivo ZIP
-url = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-response = requests.get(url)
+def cargar_datos():
+    """
+    Permite al usuario cargar un archivo CSV desde una URL o mediante carga manual.
 
-# Extraer el contenido del archivo ZIP en una carpeta específica
-with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-    z.extractall("path_to_extract")  # Cambia "path_to_extract" a la ruta deseada para extraer los archivos
+    Returns:
+        pd.DataFrame: DataFrame con los datos cargados.
+    """
+    opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
 
-# Paso 2: Leer el shapefile con GeoPandas
-shapefile_path = "path_to_extract/ne_50m_admin_0_countries.shp"  # Cambia la ruta al archivo .shp extraído
-gdf = gpd.read_file(shapefile_path)
+    if opcion == "Cargar archivo desde URL":
+        url = st.text_input("Ingresa la URL del archivo CSV")
+        if url:
+            return pd.read_csv(url)
 
-# Paso 3: Filtrar y obtener las posiciones de los municipios
-# Suponiendo que el shapefile contiene datos de municipios y que existe una columna 'MUNICIPIO' en ambos datasets.
+    elif opcion == "Subir archivo":
+        archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+        if archivo:
+            return pd.read_csv(archivo)
 
-# Mostrar las primeras filas para inspeccionar las columnas disponibles
-print(gdf.head())
+def cargar_y_relacionar_datos():
+    """
+    Carga los datos de dos fuentes y realiza la relación entre los municipios.
+    
+    Returns:
+        pd.DataFrame: DataFrame con los datos relacionados.
+    """
+    # Cargar el primer archivo CSV (madera movilizada)
+    df_madera = cargar_datos()
+    
+    # Cargar el segundo archivo CSV (con coordenadas y nombres de municipios)
+    df_municipios = cargar_datos()
 
-# Extraer la geometría de los municipios
-municipios_geom = gdf.geometry
+    # Asegurarse de que los nombres de municipios estén en el mismo formato (capitalización correcta)
+    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.title()  # Convierte a formato "Primera letra mayúscula"
 
-# Obtener las coordenadas representativas de cada municipio
-municipios_coords = municipios_geom.apply(lambda x: x.representative_point().coords[:])
-municipios_coords = [coords[0] for coords in municipios_coords]
+    # Ahora puedes relacionar el DataFrame de madera movilizada con el de municipios, asumiendo que
+    # ambos tienen una columna en común, por ejemplo, 'NOM_MPIO'.
+    df_relacionado = df_madera.merge(df_municipios, how="left", on="NOM_MPIO")
+    
+    return df_relacionado
 
-# Paso 4: Relacionar con el dataset de madera movilizada
-# Supón que tienes un DataFrame 'df_madera' con la columna 'MUNICIPIO' que quieres relacionar con las coordenadas
+# Llamar a la función para cargar y relacionar los datos
+df_relacionado = cargar_y_relacionar_datos()
 
-# Crear un diccionario que asocia los municipios con sus coordenadas
-municipios_dict = dict(zip(gdf['MUNICIPIO'], municipios_coords))
-
-# Simulación de un DataFrame de madera movilizada
-data = {
-    'MUNICIPIO': ['Bogotá', 'Medellín', 'Cali'],  # Cambia estos valores según tu dataset
-    'VOLUMEN M3': [1000, 500, 800]  # Ejemplo de volumen
-}
-df_madera = pd.DataFrame(data)
-
-# Agregar las coordenadas al DataFrame de madera movilizada
-df_madera['coordenadas'] = df_madera['MUNICIPIO'].map(municipios_dict)
-
-# Mostrar el DataFrame resultante
-print(df_madera)
+# Mostrar el DataFrame relacionado
+st.write(df_relacionado)
