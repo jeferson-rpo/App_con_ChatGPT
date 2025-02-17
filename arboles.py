@@ -1,56 +1,26 @@
 import streamlit as st
 import pandas as pd
 import geopandas as gpd
-import folium
-from folium.plugins import HeatMap
-import zipfile
 import requests
+import zipfile
 import io
+import matplotlib.pyplot as plt
 
-# Cargar el archivo CSV de madera movilizada (código previamente mencionado)
-def cargar_datos():
+# Cargar el archivo CSV de madera movilizada
+def cargar_datos_madera():
     """
-    Permite al usuario cargar un archivo CSV desde una URL o mediante carga manual.
-
-    Returns:
-        pd.DataFrame: DataFrame con los datos cargados.
+    Carga el archivo CSV con los datos de madera movilizada.
     """
-    opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
+    # URL o archivo local con los datos
+    archivo_madera = st.file_uploader("Sube tu archivo CSV de madera movilizada", type=["csv"])
+    if archivo_madera:
+        return pd.read_csv(archivo_madera)
+    return None
 
-    if opcion == "Cargar archivo desde URL":
-        url = st.text_input("Ingresa la URL del archivo CSV")
-        if url:
-            return pd.read_csv(url)
-
-    elif opcion == "Subir archivo":
-        archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
-        if archivo:
-            return pd.read_csv(archivo)
-
-def cargar_datos_municipios():
-    """
-    Carga el archivo de municipios desde la URL proporcionada.
-
-    Returns:
-        pd.DataFrame: DataFrame con los datos de municipios.
-    """
-    url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
-    df_municipios = pd.read_csv(url_municipios)
-
-    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
-    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.lower().apply(unidecode)
-    
-    # Seleccionar solo las columnas necesarias
-    df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]
-    
-    return df_municipios
-
+# Cargar y filtrar el mapa de Colombia
 def cargar_mapa_colombia():
     """
     Carga y filtra el mapa de Colombia desde el archivo proporcionado.
-
-    Returns:
-        geopandas.GeoDataFrame: Mapa de Colombia.
     """
     # URL del mapa de países
     url = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
@@ -70,40 +40,48 @@ def cargar_mapa_colombia():
 
     return colombia
 
-def generar_mapa_calor(gdf, mapa_colombia):
+# Generar el mapa de calor usando GeoPandas
+def generar_mapa_calor(gdf_madera, mapa_colombia):
     """
-    Genera un mapa de calor sobre el mapa de Colombia, usando las coordenadas de los municipios y el volumen de madera movilizada.
+    Genera un mapa de calor utilizando las coordenadas de los municipios y el volumen de madera movilizada.
     
     Args:
-        gdf (GeoDataFrame): Datos de madera movilizada.
+        gdf_madera (GeoDataFrame): Datos de madera movilizada con coordenadas y volúmenes.
         mapa_colombia (GeoDataFrame): Mapa de Colombia.
     """
-    # Crear el mapa base centrado en Colombia
-    mapa_base = folium.Map(location=[4.5709, -74.2973], zoom_start=6)
+    # Crear un GeoDataFrame con las coordenadas de los municipios y el volumen
+    gdf_madera = gpd.GeoDataFrame(
+        gdf_madera, 
+        geometry=gpd.points_from_xy(gdf_madera['LONGITUD'], gdf_madera['LATITUD']),
+        crs="EPSG:4326"
+    )
+    
+    # Establecer el CRS de Colombia y el de los municipios a uno común
+    gdf_madera = gdf_madera.to_crs(mapa_colombia.crs)
 
-    # Agregar el mapa de Colombia al mapa base
-    folium.GeoJson(mapa_colombia).add_to(mapa_base)
+    # Crear la figura y los ejes
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
 
-    # Preparar los datos para el mapa de calor
-    heat_data = [
-        [row['LATITUD'], row['LONGITUD'], row['VOLUMEN M3']] 
-        for idx, row in gdf.iterrows()
-        if pd.notna(row['LATITUD']) and pd.notna(row['LONGITUD']) and pd.notna(row['VOLUMEN M3'])
-    ]
+    # Dibujar el mapa de Colombia
+    mapa_colombia.plot(ax=ax, color='lightblue', edgecolor='black')
 
-    # Agregar el mapa de calor
-    HeatMap(heat_data).add_to(mapa_base)
+    # Graficar los puntos de los municipios con el volumen como color
+    gdf_madera.plot(ax=ax, marker='o', color=gdf_madera['VOLUMEN M3'], cmap='YlGnBu', markersize=50, legend=True)
 
-    # Mostrar el mapa en Streamlit
-    st.write("Mapa de Calor de Madera Movilizada en Colombia")
-    folium_static(mapa_base)
+    # Añadir título y etiquetas
+    ax.set_title('Distribución de Volúmenes de Madera Movilizada por Municipio', fontsize=14)
+    ax.set_xlabel('Longitud')
+    ax.set_ylabel('Latitud')
+
+    # Mostrar el mapa
+    st.pyplot(fig)
 
 # Cargar datos
-gdf = cargar_y_relacionar_datos()
+gdf_madera = cargar_datos_madera()
+
+# Cargar el mapa de Colombia
 mapa_colombia = cargar_mapa_colombia()
 
-if gdf is not None:
-    st.write("Datos cargados con éxito")
-
+if gdf_madera is not None:
     # Generar el mapa de calor
-    generar_mapa_calor(gdf, mapa_colombia)
+    generar_mapa_calor(gdf_madera, mapa_colombia)
