@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from unidecode import unidecode
-import folium
 
 def cargar_datos():
     """
@@ -62,30 +61,79 @@ def cargar_y_relacionar_datos():
     
     return df_relacionado
 
-def mostrar_datos_antioquia(gdf):
+def graficar_top_10_especies(especies_pais):
     """
-    Filtra los datos por Antioquia y muestra los datos relevantes: municipio, latitud, longitud y volumen.
+    Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
+    Cada barra tendrá un color diferente.
+
+    Args:
+        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
+    """
+    # Seleccionar las 10 especies con mayor volumen
+    top_10_especies = especies_pais.head(10)
+
+    # Crear una lista de colores para las barras
+    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
+
+    # Crear el gráfico de barras
+    plt.figure(figsize=(10, 6))
+    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
+    plt.xlabel('Especie')
+    plt.ylabel('Volumen Movilizado (M3)')
+    plt.title('Top 10 Especies con Mayor Volumen Movilizado')
+    plt.xticks(rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
+    plt.tight_layout()  # Ajustar layout para que no se corten las etiquetas
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(plt)
+
+def analizar_especies(gdf):
+    """
+    Realiza el análisis de las especies más comunes a nivel país y por departamento.
 
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
     """
-    # Filtrar los datos por departamento (Antioquia)
-    gdf_antioquia = gdf[gdf['DPTO'] == 'Antioquia']
+    # Título grande para el análisis
+    st.markdown("---")
+    st.markdown("## Análisis de Especies de Madera Movilizada")
+    st.markdown("---")
 
-    # Mostrar los datos relevantes: municipio, latitud, longitud y volumen
-    st.subheader("Datos de Madera Movilizada en Antioquia")
-    st.write(gdf_antioquia[['MUNICIPIO', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']])
+    # Análisis de especies más comunes a nivel país
+    especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+    especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+    
 
-    # Opción de mostrar la posición de los municipios en el mapa
-    st.markdown("### Mapa de Municipios de Antioquia con sus Coordenadas")
-    mapa = folium.Map(location=[gdf_antioquia['LATITUD'].mean(), gdf_antioquia['LONGITUD'].mean()], zoom_start=8)
+    st.subheader("Especies de madera más comunes a nivel país")
+    st.write(especies_pais)
+    
+    # Gráfico de barras: Top 10 especies con mayor volumen
+    st.markdown("---")
+    st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
+    st.markdown("---")
 
-    for _, row in gdf_antioquia.iterrows():
-        folium.Marker([row['LATITUD'], row['LONGITUD']], popup=f"{row['MUNICIPIO']} - Volumen: {row['VOLUMEN M3']}").add_to(mapa)
+    # Llamar a la función para graficar
+    graficar_top_10_especies(especies_pais)
 
-    st.map(mapa)
+    # Seleccionar un departamento para el análisis
+    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
 
-st.title("Análisis de Madera Movilizada en Antioquia")
+    # Filtrar datos por departamento seleccionado
+    especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
+    especies_depto = especies_depto.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
+
+    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
+    st.write(especies_depto)
+
+    # Mostrar municipio, latitud, longitud y volumen por especie en el departamento seleccionado
+    st.markdown("---")
+    st.subheader(f"Municipios y sus posiciones en {depto_seleccionado}")
+    
+    municipios_depto = gdf[gdf['DPTO'] == depto_seleccionado][['MUNICIPIO', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']]
+    st.write(municipios_depto)
+
+st.title("Análisis de Madera Movilizada")
 
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
@@ -93,5 +141,6 @@ gdf = cargar_y_relacionar_datos()
 if gdf is not None:
     st.write("Datos cargados:", gdf)
 
-    # Mostrar los datos filtrados para Antioquia
-    mostrar_datos_antioquia(gdf)
+    # Realizar el análisis automáticamente
+    analizar_especies(gdf)
+
