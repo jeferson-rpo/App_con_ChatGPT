@@ -1,134 +1,49 @@
-import streamlit as st
-import pandas as pd
+import requests
+import zipfile
+import io
 import geopandas as gpd
-import matplotlib.pyplot as plt
+import pandas as pd
 
-def cargar_datos():
-    """
-    Permite al usuario cargar un archivo CSV desde una URL o mediante carga manual.
+# Paso 1: Descargar y extraer el archivo ZIP
+url = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+response = requests.get(url)
 
-    Returns:
-        pd.DataFrame: DataFrame con los datos cargados.
-    """
-    opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
+# Extraer el contenido del archivo ZIP en una carpeta específica
+with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+    z.extractall("path_to_extract")  # Cambia "path_to_extract" a la ruta deseada para extraer los archivos
 
-    if opcion == "Cargar archivo desde URL":
-        url = st.text_input("Ingresa la URL del archivo CSV")
-        if url:
-            return pd.read_csv(url)
+# Paso 2: Leer el shapefile con GeoPandas
+shapefile_path = "path_to_extract/ne_50m_admin_0_countries.shp"  # Cambia la ruta al archivo .shp extraído
+gdf = gpd.read_file(shapefile_path)
 
-    elif opcion == "Subir archivo":
-        archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
-        if archivo:
-            return pd.read_csv(archivo)
+# Paso 3: Filtrar y obtener las posiciones de los municipios
+# Suponiendo que el shapefile contiene datos de municipios y que existe una columna 'MUNICIPIO' en ambos datasets.
 
-    return None
+# Mostrar las primeras filas para inspeccionar las columnas disponibles
+print(gdf.head())
 
-def cargar_coordenadas_municipios():
-    """
-    Carga un dataset con las coordenadas de los municipios de Colombia.
+# Extraer la geometría de los municipios
+municipios_geom = gdf.geometry
 
-    Returns:
-        pd.DataFrame: DataFrame con las coordenadas de los municipios.
-    """
-    # Cargar un dataset con las coordenadas de los municipios de Colombia
-    coordenadas_url = "https://raw.githubusercontent.com/jdvelasq/datalabs/master/datasets/divipola/municipios.csv"
-    coordenadas = pd.read_csv(coordenadas_url, sep=";")
+# Obtener las coordenadas representativas de cada municipio
+municipios_coords = municipios_geom.apply(lambda x: x.representative_point().coords[:])
+municipios_coords = [coords[0] for coords in municipios_coords]
 
-    # Seleccionar columnas relevantes (nombre del municipio, latitud, longitud)
-    coordenadas = coordenadas[['municipio', 'latitud', 'longitud']]
-    coordenadas.rename(columns={'municipio': 'MUNICIPIO'}, inplace=True)
+# Paso 4: Relacionar con el dataset de madera movilizada
+# Supón que tienes un DataFrame 'df_madera' con la columna 'MUNICIPIO' que quieres relacionar con las coordenadas
 
-    return coordenadas
+# Crear un diccionario que asocia los municipios con sus coordenadas
+municipios_dict = dict(zip(gdf['MUNICIPIO'], municipios_coords))
 
-def agregar_coordenadas_al_dataset(gdf):
-    """
-    Agrega las coordenadas de los municipios al dataset de madera movilizada.
+# Simulación de un DataFrame de madera movilizada
+data = {
+    'MUNICIPIO': ['Bogotá', 'Medellín', 'Cali'],  # Cambia estos valores según tu dataset
+    'VOLUMEN M3': [1000, 500, 800]  # Ejemplo de volumen
+}
+df_madera = pd.DataFrame(data)
 
-    Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+# Agregar las coordenadas al DataFrame de madera movilizada
+df_madera['coordenadas'] = df_madera['MUNICIPIO'].map(municipios_dict)
 
-    Returns:
-        pd.DataFrame: DataFrame con las coordenadas agregadas.
-    """
-    # Cargar coordenadas de los municipios
-    coordenadas = cargar_coordenadas_municipios()
-
-    # Unir los datos de volúmenes con las coordenadas de los municipios
-    gdf_con_coordenadas = gdf.merge(coordenadas, on='MUNICIPIO', how='left')
-
-    return gdf_con_coordenadas
-
-def generar_mapa_municipios(gdf):
-    """
-    Genera un mapa que muestra la ubicación de los municipios con sus volúmenes de madera.
-
-    Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada y coordenadas.
-    """
-    # Crear un GeoDataFrame con las coordenadas de los municipios
-    gdf = gpd.GeoDataFrame(
-        gdf, geometry=gpd.points_from_xy(gdf.longitud, gdf.latitud)
-    )
-
-    # Crear el mapa
-    fig, ax = plt.subplots(figsize=(10, 8))
-    mundo = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-    mundo[mundo.name == "Colombia"].plot(ax=ax, color='lightgrey')  # Fondo de Colombia
-    gdf.plot(column='VOLUMEN M3', cmap='OrRd', markersize=50, ax=ax, legend=True,
-             legend_kwds={'label': "Volumen de Madera (M3)"})
-    plt.title('Volumen de Madera Movilizada por Municipio en Colombia')
-    plt.axis('off')  # Ocultar ejes
-
-    # Mostrar el mapa en Streamlit
-    st.pyplot(fig)
-
-def analizar_especies(gdf):
-    """
-    Realiza el análisis de las especies más comunes a nivel país y por departamento.
-
-    Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
-    """
-    # Título grande para el análisis
-    st.markdown("---")
-    st.markdown("## Análisis de Especies de Madera Movilizada")
-    st.markdown("---")
-
-    # Análisis de especies más comunes a nivel país
-    especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
-
-    st.subheader("Especies de madera más comunes a nivel país")
-    st.write(especies_pais)
-
-    # Agregar coordenadas al dataset
-    gdf_con_coordenadas = agregar_coordenadas_al_dataset(gdf)
-
-    # Mostrar el mapa de municipios con volúmenes
-    st.markdown("---")
-    st.markdown("## Mapa de Volúmenes de Madera por Municipio")
-    st.markdown("---")
-    generar_mapa_municipios(gdf_con_coordenadas)
-
-    # Seleccionar un departamento para el análisis
-    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
-
-    # Filtrar datos por departamento seleccionado
-    especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = especies_depto.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
-
-    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
-    st.write(especies_depto)
-
-st.title("Análisis de Madera Movilizada")
-
-# Cargar datos
-gdf = cargar_datos()
-
-if gdf is not None:
-    st.write("Datos cargados:", gdf)
-
-    # Realizar el análisis automáticamente
-    analizar_especies(gdf)
+# Mostrar el DataFrame resultante
+print(df_madera)
