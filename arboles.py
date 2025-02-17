@@ -106,16 +106,18 @@ def graficar_mapa_de_calor_colombia(gdf):
     gdf['geometry'] = gpd.points_from_xy(gdf['LONGITUD'], gdf['LATITUD'])
     gdf = gpd.GeoDataFrame(gdf, geometry='geometry')
 
-    # Normalizar la columna de volumen para la visualización
-    gdf['VOLUMEN_NORMALIZADO'] = (gdf['VOLUMEN M3'] - gdf['VOLUMEN M3'].min()) / (gdf['VOLUMEN M3'].max() - gdf['VOLUMEN M3'].min())
+    # Aplicar transformación logarítmica a la columna de volumen para manejar grandes diferencias
+    gdf['VOLUMEN_LOG'] = gdf['VOLUMEN M3'].apply(lambda x: np.log(x + 1))  # +1 para evitar log(0)
+
+    # Normalizar la columna de volumen logarítmico para la visualización
+    gdf['VOLUMEN_NORMALIZADO'] = (gdf['VOLUMEN_LOG'] - gdf['VOLUMEN_LOG'].min()) / (gdf['VOLUMEN_LOG'].max() - gdf['VOLUMEN_LOG'].min())
 
     # Crear un gráfico del mapa de Colombia
     fig, ax = plt.subplots(figsize=(10, 10))
     colombia_dataframe.plot(ax=ax, color='lightgray')
 
     # Superponer el mapa de calor con los puntos de los municipios
-    # Color de los puntos dependiendo del volumen movilizado, con un gradiente de color
-    gdf.plot(ax=ax, marker='o', column='VOLUMEN_NORMALIZADO', cmap='YlOrRd', markersize=5, alpha=0.5, legend=True)
+    gdf.plot(ax=ax, marker='o', column='VOLUMEN_NORMALIZADO', cmap='YlOrRd', markersize=gdf['VOLUMEN_NORMALIZADO'] * 50, alpha=0.5, legend=True)
 
     # Añadir título y mostrar el mapa
     ax.set_title('Mapa de Calor de Madera Movilizada en Colombia', fontsize=15)
