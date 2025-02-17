@@ -343,13 +343,13 @@ def analizar_especies_con_menor_volumen(gdf):
     # Filtrar los datos de gdf para incluir solo las especies con menor volumen
     gdf_menor_volumen = gdf[gdf['ESPECIE'].isin(especies_menor_volumen['ESPECIE'])]
 
-    # Mostrar la tabla con especies, municipio y volumen
-    st.write("### Datos por Municipio y Especie con Menor Volumen Movilizado")
-    municipios_volumen = gdf_menor_volumen.groupby(['MUNICIPIO', 'ESPECIE'])['VOLUMEN M3'].sum().reset_index()
+    # Mostrar la tabla con especies, municipio, latitud, longitud y volumen
+    st.write("### Datos por Municipio, Latitud, Longitud y Especie con Menor Volumen Movilizado")
+    municipios_volumen = gdf_menor_volumen[['MUNICIPIO', 'ESPECIE', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']].groupby(['MUNICIPIO', 'ESPECIE', 'LATITUD', 'LONGITUD']).sum().reset_index()
     st.write(municipios_volumen)
 
     # Filtrar los datos de gdf para graficar
-    gdf_menor_volumen = gdf_menor_volumen[['MUNICIPIO', 'ESPECIE', 'LONGITUD', 'LATITUD', 'VOLUMEN M3']]
+    gdf_menor_volumen = gdf_menor_volumen[['MUNICIPIO', 'ESPECIE', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']]
 
     # Título para el análisis geográfico
     st.markdown("### Distribución Geográfica de las Especies con Menor Volumen Movilizado")
@@ -382,6 +382,8 @@ def analizar_especies_con_menor_volumen(gdf):
         st.pyplot(fig)
     else:
         st.error("No se encontraron las columnas 'LONGITUD' y 'LATITUD' en los datos.")
+
+
 
 
 # Cargar datos
