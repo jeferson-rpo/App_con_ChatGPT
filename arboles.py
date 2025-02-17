@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import geopandas as gpd
 import matplotlib.pyplot as plt
+from unidecode import unidecode
 
 def cargar_datos():
     """
@@ -22,78 +22,70 @@ def cargar_datos():
         if archivo:
             return pd.read_csv(archivo)
 
-    return None
-
-def cargar_coordenadas_municipios():
+def cargar_datos_municipios():
     """
-    Carga un dataset con las coordenadas de los municipios de Colombia desde la URL proporcionada.
+    Carga el archivo de municipios directamente desde la URL proporcionada.
 
     Returns:
-        pd.DataFrame: DataFrame con las coordenadas de los municipios.
+        pd.DataFrame: DataFrame con los datos de municipios.
     """
-    try:
-        # URL proporcionada con los datos de municipios
-        url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
-        df_municipios = pd.read_csv(url_municipios)
+    url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
+    df_municipios = pd.read_csv(url_municipios)
 
-        # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
-        df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.lower().apply(unidecode)
-        
-        # Seleccionar solo las columnas necesarias
-        df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD']]
-        
-        return df_municipios
-    except Exception as e:
-        st.error(f"Error al cargar las coordenadas: {e}")
-        return pd.DataFrame()  # Retorna un DataFrame vacío en caso de error
+    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
+    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.lower().apply(unidecode)
+    
+    # Seleccionar solo las columnas necesarias
+    df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]
+    
+    return df_municipios
 
-def agregar_coordenadas_al_dataset(gdf):
+def cargar_y_relacionar_datos():
     """
-    Agrega las coordenadas de los municipios al dataset de madera movilizada.
-
-    Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
-
+    Carga los datos de madera movilizada y los relaciona con los municipios.
+    
     Returns:
-        pd.DataFrame: DataFrame con las coordenadas agregadas.
+        pd.DataFrame: DataFrame con los datos relacionados.
     """
-    # Cargar coordenadas de los municipios
-    coordenadas = cargar_coordenadas_municipios()
+    # Cargar el archivo de madera movilizada desde la URL o mediante carga manual
+    df_madera = cargar_datos()
+    
+    # Cargar los datos de los municipios desde la URL
+    df_municipios = cargar_datos_municipios()
 
-    # Normalizar los nombres de los municipios en el dataset de madera
-    gdf['MUNICIPIO'] = gdf['MUNICIPIO'].str.lower().apply(unidecode)
+    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) en df_madera usando vectorización
+    df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].str.lower().apply(unidecode)
 
-    # Unir los datos de volúmenes con las coordenadas de los municipios
-    gdf_con_coordenadas = gdf.merge(coordenadas, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
+    # Relacionar los datos de madera movilizada con los municipios sin duplicar columnas
+    df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
+    
+    return df_relacionado
 
-    return gdf_con_coordenadas
-
-def generar_mapa_municipios(gdf):
+def graficar_top_10_especies(especies_pais):
     """
-    Genera un mapa que muestra la ubicación de los municipios con sus volúmenes de madera.
+    Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
+    Cada barra tendrá un color diferente.
 
     Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada y coordenadas.
+        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
     """
-    # Crear un GeoDataFrame con las coordenadas de los municipios
-    gdf = gpd.GeoDataFrame(
-        gdf, geometry=gpd.points_from_xy(gdf.LONGITUD, gdf.LATITUD)
-    )
+    # Seleccionar las 10 especies con mayor volumen
+    top_10_especies = especies_pais.head(10)
 
-    # Cargar un archivo GeoJSON con los límites de Colombia
-    url_geojson_colombia = "https://raw.githubusercontent.com/CodeForSocialGood/colombia-geojson/master/colombia.geojson"
-    colombia = gpd.read_file(url_geojson_colombia)
+    # Crear una lista de colores para las barras
+    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
 
-    # Crear el mapa
-    fig, ax = plt.subplots(figsize=(10, 8))
-    colombia.plot(ax=ax, color='lightgrey')  # Fondo de Colombia
-    gdf.plot(column='VOLUMEN M3', cmap='OrRd', markersize=50, ax=ax, legend=True,
-             legend_kwds={'label': "Volumen de Madera (M3)"})
-    plt.title('Volumen de Madera Movilizada por Municipio en Colombia')
-    plt.axis('off')  # Ocultar ejes
+    # Crear el gráfico de barras
+    plt.figure(figsize=(10, 6))
+    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
+    plt.xlabel('Especie')
+    plt.ylabel('Volumen Movilizado (M3)')
+    plt.title('Top 10 Especies con Mayor Volumen Movilizado')
+    plt.xticks(rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
+    plt.tight_layout()  # Ajustar layout para que no se corten las etiquetas
 
-    # Mostrar el mapa en Streamlit
-    st.pyplot(fig)
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(plt)
 
 def analizar_especies(gdf):
     """
@@ -111,17 +103,11 @@ def analizar_especies(gdf):
     especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
     especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
 
-    st.subheader("Especies de madera más comunes a nivel país")
-    st.write(especies_pais)
-
-    # Agregar coordenadas al dataset
-    gdf_con_coordenadas = agregar_coordenadas_al_dataset(gdf)
-
-    # Mostrar el mapa de municipios con volúmenes
+    # Gráfico de barras: Top 10 especies con mayor volumen
     st.markdown("---")
-    st.markdown("## Mapa de Volúmenes de Madera por Municipio")
+    st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
     st.markdown("---")
-    generar_mapa_municipios(gdf_con_coordenadas)
+    graficar_top_10_especies(especies_pais)
 
     # Seleccionar un departamento para el análisis
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
@@ -137,7 +123,7 @@ def analizar_especies(gdf):
 st.title("Análisis de Madera Movilizada")
 
 # Cargar datos
-gdf = cargar_datos()
+gdf = cargar_y_relacionar_datos()
 
 if gdf is not None:
     st.write("Datos cargados:", gdf)
