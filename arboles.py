@@ -313,11 +313,10 @@ def agrupar_por_municipio(gdf):
 
     # Mostrar la tabla con el volumen total por municipio
     st.write(volumen_por_municipio)
-
 def analizar_especies_con_menor_volumen(gdf):
     """
     Identifica las especies de madera con menor volumen movilizado y analiza su distribución geográfica.
-    
+
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
     """
@@ -343,45 +342,45 @@ def analizar_especies_con_menor_volumen(gdf):
     # Filtrar los datos de gdf para incluir solo las especies con menor volumen
     gdf_menor_volumen = gdf[gdf['ESPECIE'].isin(especies_menor_volumen['ESPECIE'])]
 
+    # Asegurarse de que las columnas LATITUD y LONGITUD estén en el formato adecuado
+    gdf_menor_volumen = gdf_menor_volumen.dropna(subset=['LATITUD', 'LONGITUD'])
+    gdf_menor_volumen['LATITUD'] = pd.to_numeric(gdf_menor_volumen['LATITUD'], errors='coerce')
+    gdf_menor_volumen['LONGITUD'] = pd.to_numeric(gdf_menor_volumen['LONGITUD'], errors='coerce')
+
+    # Filtrar los datos que contienen valores válidos para las coordenadas
+    gdf_menor_volumen = gdf_menor_volumen.dropna(subset=['LATITUD', 'LONGITUD'])
+
     # Mostrar la tabla con especies, municipio, latitud, longitud y volumen
     st.write("### Datos por Municipio, Latitud, Longitud y Especie con Menor Volumen Movilizado")
-    municipios_volumen = gdf_menor_volumen[['MUNICIPIO', 'ESPECIE', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']].groupby(['MUNICIPIO', 'ESPECIE', 'LATITUD', 'LONGITUD']).sum().reset_index()
-    st.write(municipios_volumen)
+    st.write(gdf_menor_volumen[['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']])
 
-    # Filtrar los datos de gdf para graficar
-    gdf_menor_volumen = gdf_menor_volumen[['MUNICIPIO', 'ESPECIE', 'LATITUD', 'LONGITUD', 'VOLUMEN M3']]
+    # Crear un GeoDataFrame a partir de las coordenadas de latitud y longitud
+    gdf_menor_volumen['geometry'] = gpd.points_from_xy(gdf_menor_volumen['LONGITUD'], gdf_menor_volumen['LATITUD'])
+    gdf_menor_volumen = gpd.GeoDataFrame(gdf_menor_volumen, geometry='geometry')
 
-    # Título para el análisis geográfico
-    st.markdown("### Distribución Geográfica de las Especies con Menor Volumen Movilizado")
+    # Crear el gráfico del mapa de calor para las especies con menor volumen movilizado
+    st.markdown("---")
+    st.markdown("## Mapa de Calor de Especies con Menor Volumen Movilizado")
     st.markdown("---")
 
-    # Verificamos que las columnas 'LONGITUD' y 'LATITUD' existen y son correctas
-    if 'LONGITUD' in gdf_menor_volumen.columns and 'LATITUD' in gdf_menor_volumen.columns:
-        # Crear geometría a partir de las coordenadas
-        gdf_menor_volumen['geometry'] = gpd.points_from_xy(gdf_menor_volumen['LONGITUD'], gdf_menor_volumen['LATITUD'])
-        gdf_menor_volumen = gpd.GeoDataFrame(gdf_menor_volumen, geometry='geometry')
+    # Crear un mapa de calor en base a las coordenadas
+    fig, ax = plt.subplots(figsize=(10, 10))
 
-        # Cargar el archivo GeoJSON de países y filtrar solo Colombia
-        ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-        mundo_dataframe = gpd.read_file(ruta_0)
-        colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
+    # Cargar el archivo de mapa de Colombia
+    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    mundo_dataframe = gpd.read_file(ruta_0)
+    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
+    colombia_dataframe.plot(ax=ax, color='lightgray')
 
-        # Crear un gráfico del mapa de Colombia
-        fig, ax = plt.subplots(figsize=(10, 10))
-        colombia_dataframe.plot(ax=ax, color='lightgray')
+    # Graficar los puntos con la latitud y longitud, ajustando el tamaño de los puntos con el volumen
+    gdf_menor_volumen.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', markersize=gdf_menor_volumen['VOLUMEN M3'] / 100, alpha=0.6, legend=True)
 
-        # Superponer los puntos de las especies con menor volumen
-        gdf_menor_volumen.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlGnBu', 
-                               markersize=gdf_menor_volumen['VOLUMEN M3'] / 100, alpha=0.5, legend=True)
+    ax.set_title('Distribución Geográfica de Especies con Menor Volumen Movilizado')
+    plt.tight_layout()
 
-        # Añadir título y mostrar el mapa
-        ax.set_title('Distribución Geográfica de Especies con Menor Volumen Movilizado en Colombia', fontsize=15)
-        plt.tight_layout()
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(fig)
 
-        # Mostrar el gráfico en Streamlit
-        st.pyplot(fig)
-    else:
-        st.error("No se encontraron las columnas 'LONGITUD' y 'LATITUD' en los datos.")
 
 
 
