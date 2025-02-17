@@ -335,41 +335,53 @@ def analizar_especies_con_menor_volumen(gdf):
     # Seleccionar las 10 especies con menor volumen movilizado
     especies_menor_volumen = especies_volumen.head(10)
 
-    # Mostrar la tabla con las especies y su volumen
-    st.write(especies_menor_volumen)
+    # Mostrar la tabla con las especies, su volumen y la posición en el ranking
+    st.write("### Ranking de Especies con Menor Volumen Movilizado")
+    especies_menor_volumen['Posición'] = range(1, len(especies_menor_volumen) + 1)
+    st.write(especies_menor_volumen[['Posición', 'ESPECIE', 'VOLUMEN M3']])
 
     # Filtrar los datos de gdf para incluir solo las especies con menor volumen
     gdf_menor_volumen = gdf[gdf['ESPECIE'].isin(especies_menor_volumen['ESPECIE'])]
 
-    # Mostrar el mapa de distribución geográfica de estas especies
+    # Mostrar la tabla con especies, municipio y volumen
+    st.write("### Datos por Municipio y Especie con Menor Volumen Movilizado")
+    municipios_volumen = gdf_menor_volumen.groupby(['MUNICIPIO', 'ESPECIE'])['VOLUMEN M3'].sum().reset_index()
+    st.write(municipios_volumen)
+
+    # Filtrar los datos de gdf para graficar
+    gdf_menor_volumen = gdf_menor_volumen[['MUNICIPIO', 'ESPECIE', 'LONGITUD', 'LATITUD', 'VOLUMEN M3']]
+
+    # Título para el análisis geográfico
     st.markdown("### Distribución Geográfica de las Especies con Menor Volumen Movilizado")
     st.markdown("---")
 
-    # Crear un GeoDataFrame para las especies con menor volumen movilizado
-    gdf_menor_volumen['geometry'] = gpd.points_from_xy(gdf_menor_volumen['LONGITUD'], gdf_menor_volumen['LATITUD'])
-    gdf_menor_volumen = gpd.GeoDataFrame(gdf_menor_volumen, geometry='geometry')
+    # Verificamos que las columnas 'LONGITUD' y 'LATITUD' existen y son correctas
+    if 'LONGITUD' in gdf_menor_volumen.columns and 'LATITUD' in gdf_menor_volumen.columns:
+        # Crear geometría a partir de las coordenadas
+        gdf_menor_volumen['geometry'] = gpd.points_from_xy(gdf_menor_volumen['LONGITUD'], gdf_menor_volumen['LATITUD'])
+        gdf_menor_volumen = gpd.GeoDataFrame(gdf_menor_volumen, geometry='geometry')
 
-    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
-    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-    mundo_dataframe = gpd.read_file(ruta_0)
-    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
+        # Cargar el archivo GeoJSON de países y filtrar solo Colombia
+        ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+        mundo_dataframe = gpd.read_file(ruta_0)
+        colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
 
-    # Crear un gráfico del mapa de Colombia
-    fig, ax = plt.subplots(figsize=(10, 10))
-    colombia_dataframe.plot(ax=ax, color='lightgray')
+        # Crear un gráfico del mapa de Colombia
+        fig, ax = plt.subplots(figsize=(10, 10))
+        colombia_dataframe.plot(ax=ax, color='lightgray')
 
-    # Superponer los puntos de las especies con menor volumen
-    gdf_menor_volumen.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlGnBu', markersize=gdf_menor_volumen['VOLUMEN M3'] / 100, alpha=0.5, legend=True)
+        # Superponer los puntos de las especies con menor volumen
+        gdf_menor_volumen.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlGnBu', 
+                               markersize=gdf_menor_volumen['VOLUMEN M3'] / 100, alpha=0.5, legend=True)
 
-    # Añadir título y mostrar el mapa
-    ax.set_title('Distribución Geográfica de Especies con Menor Volumen Movilizado en Colombia', fontsize=15)
-    plt.tight_layout()
+        # Añadir título y mostrar el mapa
+        ax.set_title('Distribución Geográfica de Especies con Menor Volumen Movilizado en Colombia', fontsize=15)
+        plt.tight_layout()
 
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(fig)
-
-
-
+        # Mostrar el gráfico en Streamlit
+        st.pyplot(fig)
+    else:
+        st.error("No se encontraron las columnas 'LONGITUD' y 'LATITUD' en los datos.")
 
 
 # Cargar datos
