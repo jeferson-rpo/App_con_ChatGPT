@@ -35,7 +35,7 @@ def cargar_datos_municipios():
     # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
     df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].apply(lambda x: unidecode(x.lower()))
     
-    return df_municipios
+    return df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]  # Seleccionar solo las columnas necesarias
 
 def cargar_y_relacionar_datos():
     """
