@@ -103,7 +103,6 @@ def analizar_especies(gdf):
     especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
     especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
     
-
     st.subheader("Especies de madera más comunes a nivel país")
     st.write(especies_pais)
     
@@ -125,6 +124,11 @@ def analizar_especies(gdf):
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
+
+    # Mostrar municipios y su posición (latitud y longitud) asociados al departamento seleccionado
+    municipios_depto = gdf[gdf['DPTO'] == depto_seleccionado][['MUNICIPIO', 'LATITUD', 'LONGITUD']].drop_duplicates()
+    st.subheader(f"Municipios en {depto_seleccionado} y su posición geográfica")
+    st.write(municipios_depto)
 
 st.title("Análisis de Madera Movilizada")
 
