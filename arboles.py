@@ -62,16 +62,16 @@ def cargar_y_relacionar_datos():
     
     return df_relacionado
 
-def graficar_top_10_especies(especies_pais):
+def graficar_top_10_especies(especies_depto):
     """
     Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
     Cada barra tendrá un color diferente.
 
     Args:
-        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
+        especies_depto (pd.DataFrame): DataFrame con las especies y su volumen total por departamento.
     """
     # Seleccionar las 10 especies con mayor volumen
-    top_10_especies = especies_pais.head(10)
+    top_10_especies = especies_depto.head(10)
 
     # Crear una lista de colores para las barras
     colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
@@ -88,61 +88,46 @@ def graficar_top_10_especies(especies_pais):
     # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
 
-def analizar_especies(gdf):
+def analizar_especies_antioquia(gdf):
     """
-    Realiza el análisis de las especies más comunes a nivel país y por departamento,
-    incluyendo los municipios y sus coordenadas.
+    Realiza el análisis de las especies más comunes en Antioquia, incluyendo los municipios y sus coordenadas.
 
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
     """
-    # Título grande para el análisis
-    st.markdown("---")
-    st.markdown("## Análisis de Especies de Madera Movilizada")
-    st.markdown("---")
+    # Filtro por Antioquia
+    gdf_antioquia = gdf[gdf['DPTO'] == 'Antioquia']
 
-    # Análisis de especies más comunes a nivel país
-    especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+    # Análisis de especies más comunes en Antioquia
+    especies_antioquia = gdf_antioquia.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+    especies_antioquia = especies_antioquia.sort_values(by='VOLUMEN M3', ascending=False)
     
-    st.subheader("Especies de madera más comunes a nivel país")
-    st.write(especies_pais)
+    st.subheader("Especies de madera más comunes en Antioquia")
+    st.write(especies_antioquia)
     
     # Gráfico de barras: Top 10 especies con mayor volumen
     st.markdown("---")
-    st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
+    st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado en Antioquia")
     st.markdown("---")
     
     # Llamar a la función para graficar
-    graficar_top_10_especies(especies_pais)
+    graficar_top_10_especies(especies_antioquia)
 
-    # Seleccionar un departamento para el análisis
-    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
-
-    # Filtrar datos por departamento seleccionado
-    especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = especies_depto.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
-
-    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
-    st.write(especies_depto)
-    
-    # Mostrar los municipios y sus coordenadas asociadas
-    st.markdown(f"### Municipios de {depto_seleccionado} con sus Coordenadas")
-    
-    municipios_depto = gdf[gdf['DPTO'] == depto_seleccionado][['MUNICIPIO', 'LATITUD', 'LONGITUD']].drop_duplicates()
-    st.write(municipios_depto)
+    # Mostrar los municipios y sus coordenadas asociadas en Antioquia
+    st.markdown("### Municipios de Antioquia con sus Coordenadas")
+    municipios_antioquia = gdf_antioquia[['MUNICIPIO', 'LATITUD', 'LONGITUD']].drop_duplicates()
+    st.write(municipios_antioquia)
 
     # Opción de mostrar la posición de los municipios en el mapa (si lo deseas)
-    st.markdown("#### Mapa de Municipios Seleccionados")
-    mapa = folium.Map(location=[municipios_depto['LATITUD'].mean(), municipios_depto['LONGITUD'].mean()], zoom_start=8)
+    st.markdown("#### Mapa de Municipios de Antioquia")
+    mapa = folium.Map(location=[municipios_antioquia['LATITUD'].mean(), municipios_antioquia['LONGITUD'].mean()], zoom_start=8)
 
-    for _, row in municipios_depto.iterrows():
+    for _, row in municipios_antioquia.iterrows():
         folium.Marker([row['LATITUD'], row['LONGITUD']], popup=row['MUNICIPIO']).add_to(mapa)
 
     st.map(mapa)
 
-st.title("Análisis de Madera Movilizada")
+st.title("Análisis de Madera Movilizada en Antioquia")
 
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
@@ -150,5 +135,6 @@ gdf = cargar_y_relacionar_datos()
 if gdf is not None:
     st.write("Datos cargados:", gdf)
 
-    # Realizar el análisis automáticamente
-    analizar_especies(gdf)
+    # Realizar el análisis para Antioquia
+    analizar_especies_antioquia(gdf)
+
