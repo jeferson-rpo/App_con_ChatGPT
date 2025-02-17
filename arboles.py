@@ -49,8 +49,11 @@ def cargar_y_relacionar_datos():
     # Cargar los datos de los municipios desde la URL
     df_municipios = cargar_datos_municipios()
 
+    # Normalizar los nombres de los municipios en df_madera y df_municipios
+    df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].str.title()  # Normaliza el nombre del municipio en df_madera
+
     # Relacionar los datos de madera movilizada con los municipios
-    df_relacionado = df_madera.merge(df_municipios, how="left", on="NOM_MPIO")
+    df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO")
     
     return df_relacionado
 
