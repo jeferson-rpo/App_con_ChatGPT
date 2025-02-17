@@ -32,10 +32,13 @@ def cargar_datos_municipios():
     url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
     df_municipios = pd.read_csv(url_municipios)
 
-    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
-    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].apply(lambda x: unidecode(x.lower()))
+    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) usando vectorización
+    df_municipios['NOM_MPIO'] = unidecode(df_municipios['NOM_MPIO'].str.lower())
     
-    return df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]  # Seleccionar solo las columnas necesarias
+    # Seleccionar solo las columnas necesarias
+    df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]
+    
+    return df_municipios
 
 def cargar_y_relacionar_datos():
     """
@@ -50,11 +53,11 @@ def cargar_y_relacionar_datos():
     # Cargar los datos de los municipios desde la URL
     df_municipios = cargar_datos_municipios()
 
-    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) en df_madera
-    df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].apply(lambda x: unidecode(x.lower()))
+    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) en df_madera usando vectorización
+    df_madera['MUNICIPIO'] = unidecode(df_madera['MUNICIPIO'].str.lower())
 
-    # Relacionar los datos de madera movilizada con los municipios
-    df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO")
+    # Relacionar los datos de madera movilizada con los municipios sin duplicar columnas
+    df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
     
     return df_relacionado
 
