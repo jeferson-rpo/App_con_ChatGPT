@@ -314,6 +314,61 @@ def agrupar_por_municipio(gdf):
     # Mostrar la tabla con el volumen total por municipio
     st.write(volumen_por_municipio)
 
+def analizar_especies_con_menor_volumen(gdf):
+    """
+    Identifica las especies de madera con menor volumen movilizado y analiza su distribución geográfica.
+    
+    Args:
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+    """
+    # Título para la sección
+    st.markdown("---")
+    st.markdown("## Especies con Menor Volumen Movilizado y su Distribución Geográfica")
+    st.markdown("---")
+
+    # Agrupar por especie y calcular el volumen total de madera movilizada
+    especies_volumen = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
+
+    # Ordenar por volumen de menor a mayor
+    especies_volumen = especies_volumen.sort_values(by='VOLUMEN M3', ascending=True)
+
+    # Seleccionar las 10 especies con menor volumen movilizado
+    especies_menor_volumen = especies_volumen.head(10)
+
+    # Mostrar la tabla con las especies y su volumen
+    st.write(especies_menor_volumen)
+
+    # Filtrar los datos de gdf para incluir solo las especies con menor volumen
+    gdf_menor_volumen = gdf[gdf['ESPECIE'].isin(especies_menor_volumen['ESPECIE'])]
+
+    # Mostrar el mapa de distribución geográfica de estas especies
+    st.markdown("### Distribución Geográfica de las Especies con Menor Volumen Movilizado")
+    st.markdown("---")
+
+    # Crear un GeoDataFrame para las especies con menor volumen movilizado
+    gdf_menor_volumen['geometry'] = gpd.points_from_xy(gdf_menor_volumen['LONGITUD'], gdf_menor_volumen['LATITUD'])
+    gdf_menor_volumen = gpd.GeoDataFrame(gdf_menor_volumen, geometry='geometry')
+
+    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
+    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    mundo_dataframe = gpd.read_file(ruta_0)
+    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
+
+    # Crear un gráfico del mapa de Colombia
+    fig, ax = plt.subplots(figsize=(10, 10))
+    colombia_dataframe.plot(ax=ax, color='lightgray')
+
+    # Superponer los puntos de las especies con menor volumen
+    gdf_menor_volumen.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlGnBu', markersize=gdf_menor_volumen['VOLUMEN M3'] / 100, alpha=0.5, legend=True)
+
+    # Añadir título y mostrar el mapa
+    ax.set_title('Distribución Geográfica de Especies con Menor Volumen Movilizado en Colombia', fontsize=15)
+    plt.tight_layout()
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(fig)
+
+
 
 
 
@@ -332,3 +387,5 @@ if gdf is not None:
     analizar_outliers(gdf)
     # Llamada a la función de agrupamiento (suponiendo que gdf ya está cargado)
     agrupar_por_municipio(gdf)
+    # Llamada a la función de análisis (suponiendo que gdf ya está cargado)
+    analizar_especies_con_menor_volumen(gdf)
