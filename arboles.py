@@ -63,7 +63,10 @@ def cargar_y_relacionar_datos():
 
     # Relacionar los datos de madera movilizada con los municipios sin duplicar columnas
     df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
-    
+
+    # Interpolación de los valores NaN en las columnas relevantes
+    df_relacionado[['LATITUD', 'LONGITUD', 'VOLUMEN M3']] = df_relacionado[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].interpolate(method='linear', axis=0)
+
     return df_relacionado
 
 def cargar_mapa_mundial():
