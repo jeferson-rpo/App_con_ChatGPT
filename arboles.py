@@ -1,6 +1,11 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import geopandas as gpd
+import folium
+from folium.plugins import HeatMap
+import zipfile
+import io
+import requests
 from unidecode import unidecode
 
 def cargar_datos():
@@ -61,66 +66,48 @@ def cargar_y_relacionar_datos():
     
     return df_relacionado
 
-def graficar_top_10_especies(especies_pais):
+def cargar_mapa_mundial():
     """
-    Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
-    Cada barra tendrá un color diferente.
-
-    Args:
-        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
+    Carga el archivo de mapa mundial de países desde la URL proporcionada.
+    
+    Returns:
+        GeoDataFrame: GeoDataFrame con los límites de los países.
     """
-    # Seleccionar las 10 especies con mayor volumen
-    top_10_especies = especies_pais.head(10)
+    # Cargar el archivo zip desde la URL
+    url = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    response = requests.get(url)
+    with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+        zf.extractall("mapa")
+    
+    # Cargar el shapefile del mapa de países
+    mapa = gpd.read_file("mapa/ne_50m_admin_0_countries.shp")
+    
+    return mapa
 
-    # Crear una lista de colores para las barras
-    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
-
-    # Crear el gráfico de barras
-    plt.figure(figsize=(10, 6))
-    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
-    plt.xlabel('Especie')
-    plt.ylabel('Volumen Movilizado (M3)')
-    plt.title('Top 10 Especies con Mayor Volumen Movilizado')
-    plt.xticks(rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
-    plt.tight_layout()  # Ajustar layout para que no se corten las etiquetas
-
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(plt)
-
-def analizar_especies(gdf):
+def generar_mapa_calor(gdf, mapa):
     """
-    Realiza el análisis de las especies más comunes a nivel país y por departamento.
-
+    Genera un mapa de calor que muestra la distribución de volúmenes de madera por departamento.
+    
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
+        mapa (GeoDataFrame): GeoDataFrame con los límites de los países.
     """
-    # Título grande para el análisis
-    st.markdown("---")
-    st.markdown("## Análisis de Especies de Madera Movilizada")
-    st.markdown("---")
+    # Crear el mapa base centrado en el centro geográfico del mapa mundial
+    mapa_base = folium.Map(location=[0, 0], zoom_start=2)
+    
+    # Agregar el mapa de países de fondo
+    folium.GeoJson(mapa).add_to(mapa_base)
+    
+    # Preparar los datos para el mapa de calor: cada punto será un municipio con su volumen
+    puntos = gdf[['LATITUD', 'LONGITUD', 'VOLUMEN M3']].values
 
-    # Análisis de especies más comunes a nivel país
-    especies_pais = gdf.groupby('ESPECIE')['VOLUMEN M3'].sum().reset_index()
-    especies_pais = especies_pais.sort_values(by='VOLUMEN M3', ascending=False)
+    # Crear el mapa de calor
+    heat_data = [[point[0], point[1], point[2]] for point in puntos]
+    HeatMap(heat_data).add_to(mapa_base)
 
-    # Gráfico de barras: Top 10 especies con mayor volumen
-    st.markdown("---")
-    st.markdown("## Gráfico Top 10 Especies con Mayor Volumen Movilizado")
-    st.markdown("---")
-    graficar_top_10_especies(especies_pais)
-
-    # Seleccionar un departamento para el análisis
-    depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
-
-    # Filtrar datos por departamento seleccionado
-    especies_depto = gdf[gdf['DPTO'] == depto_seleccionado]
-    especies_depto = especies_depto.groupby(['ESPECIE', 'MUNICIPIO', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
-    especies_depto = especies_depto.sort_values(by='VOLUMEN M3', ascending=False)
-
-    st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
-    st.write(especies_depto)
-
-st.title("Análisis de Madera Movilizada")
+    # Mostrar el mapa en Streamlit
+    st.write("### Mapa de Calor de Volúmenes de Madera por Departamento")
+    st.components.v1.html(mapa_base._repr_html_(), height=600)
 
 # Cargar datos
 gdf = cargar_y_relacionar_datos()
@@ -128,6 +115,9 @@ gdf = cargar_y_relacionar_datos()
 if gdf is not None:
     st.write("Datos cargados:", gdf)
 
-    # Realizar el análisis automáticamente
-    analizar_especies(gdf)
+    # Cargar el mapa de países
+    mapa_mundial = cargar_mapa_mundial()
+
+    # Llamar a la función de generación de mapa de calor
+    generar_mapa_calor(gdf, mapa_mundial)
 
