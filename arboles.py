@@ -88,33 +88,35 @@ def graficar_top_10_especies(especies_pais):
     # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
 
-def graficar_mapa_calor(df, depto_seleccionado):
+def graficar_mapa_de_calor_colombia(gdf):
     """
-    Muestra un mapa de calor con la latitud y longitud de los municipios, basado en el volumen de madera movilizada.
+    Muestra el mapa de calor de los volúmenes movilizados sobre el mapa de Colombia.
 
     Args:
-        df (pd.DataFrame): DataFrame con los datos relacionados, incluyendo la latitud, longitud y volumen de madera.
-        depto_seleccionado (str): El nombre del departamento seleccionado para el análisis.
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada con geolocalización.
     """
-    # Filtrar datos por departamento
-    df_depto = df[df['DPTO'] == depto_seleccionado]
+    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
+    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
+    mundo_dataframe = gpd.read_file(ruta_0)
+    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
 
-    # Convertir el DataFrame a un GeoDataFrame
-    gdf = gpd.GeoDataFrame(df_depto, geometry=gpd.points_from_xy(df_depto['LONGITUD'], df_depto['LATITUD']))
-    
-    # Establecer el CRS (Sistema de Referencia de Coordenadas)
-    gdf.set_crs("EPSG:4326", allow_override=True, inplace=True)
+    # Crear un GeoDataFrame a partir de los datos de madera movilizada
+    gdf['geometry'] = gpd.points_from_xy(gdf['LONGITUD'], gdf['LATITUD'])
+    gdf = gpd.GeoDataFrame(gdf, geometry='geometry')
 
-    # Crear el mapa de calor
-    plt.figure(figsize=(10, 6))
-    ax = gdf.plot(kind='scatter', x='LONGITUD', y='LATITUD', c='VOLUMEN M3', cmap='YlOrRd', alpha=0.7, edgecolors='k', s=30, figsize=(10, 6))
-    ax.set_title(f'Mapa de Calor - Volumen de Madera Movilizada en {depto_seleccionado}')
-    ax.set_xlabel('Longitud')
-    ax.set_ylabel('Latitud')
+    # Hacer un gráfico del mapa de Colombia
+    fig, ax = plt.subplots(figsize=(10, 10))
+    colombia_dataframe.plot(ax=ax, color='lightgray')
+
+    # Superponer el mapa de calor con los puntos de los municipios
+    gdf.plot(ax=ax, marker='o', color='red', markersize=5, alpha=0.5)
+
+    # Añadir título y mostrar el mapa
+    ax.set_title('Mapa de Calor de Madera Movilizada en Colombia', fontsize=15)
     plt.tight_layout()
-    
-    # Mostrar el mapa en Streamlit
-    st.pyplot(plt)
+
+    # Mostrar el gráfico en Streamlit
+    st.pyplot(fig)
 
 def analizar_especies(gdf):
     """
@@ -138,6 +140,12 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_top_10_especies(especies_pais)
 
+    # Mapa de calor de madera movilizada en Colombia
+    st.markdown("---")
+    st.markdown("## Mapa de Calor de Madera Movilizada en Colombia")
+    st.markdown("---")
+    graficar_mapa_de_calor_colombia(gdf)
+
     # Seleccionar un departamento para el análisis
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
 
@@ -148,12 +156,6 @@ def analizar_especies(gdf):
 
     st.subheader(f"Especies de madera más comunes en {depto_seleccionado}")
     st.write(especies_depto)
-
-    # Mapa de calor para el departamento seleccionado
-    st.markdown("---")
-    st.markdown("## Mapa de Calor de Madera Movilizada")
-    st.markdown("---")
-    graficar_mapa_calor(gdf, depto_seleccionado)
 
 st.title("Análisis de Madera Movilizada")
 
