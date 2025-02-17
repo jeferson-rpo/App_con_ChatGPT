@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from unidecode import unidecode
 
 def cargar_datos():
     """
@@ -31,8 +32,8 @@ def cargar_datos_municipios():
     url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
     df_municipios = pd.read_csv(url_municipios)
 
-    # Asegurarse de que los nombres de los municipios estén en el mismo formato (capitalización correcta)
-    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.title()  # Convierte a formato "Primera letra mayúscula"
+    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas)
+    df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].apply(lambda x: unidecode(x.lower()))
     
     return df_municipios
 
@@ -49,8 +50,8 @@ def cargar_y_relacionar_datos():
     # Cargar los datos de los municipios desde la URL
     df_municipios = cargar_datos_municipios()
 
-    # Normalizar los nombres de los municipios en df_madera y df_municipios
-    df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].str.title()  # Normaliza el nombre del municipio en df_madera
+    # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) en df_madera
+    df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].apply(lambda x: unidecode(x.lower()))
 
     # Relacionar los datos de madera movilizada con los municipios
     df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO")
@@ -62,4 +63,3 @@ df_relacionado = cargar_y_relacionar_datos()
 
 # Mostrar el DataFrame relacionado
 st.write(df_relacionado)
-
