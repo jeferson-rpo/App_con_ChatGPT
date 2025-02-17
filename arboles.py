@@ -91,7 +91,9 @@ def graficar_top_10_especies(especies_pais):
 def graficar_mapa_de_calor_colombia(gdf):
     """
     Muestra el mapa de calor de los volúmenes movilizados sobre el mapa de Colombia.
-
+    
+    Los puntos en el mapa tienen colores y tamaños ajustados según el volumen movilizado (VOLUMEN M3).
+    
     Args:
         gdf (pd.DataFrame): DataFrame con los datos de madera movilizada con geolocalización.
     """
@@ -104,12 +106,16 @@ def graficar_mapa_de_calor_colombia(gdf):
     gdf['geometry'] = gpd.points_from_xy(gdf['LONGITUD'], gdf['LATITUD'])
     gdf = gpd.GeoDataFrame(gdf, geometry='geometry')
 
-    # Hacer un gráfico del mapa de Colombia
+    # Normalizar la columna de volumen para la visualización
+    gdf['VOLUMEN_NORMALIZADO'] = (gdf['VOLUMEN M3'] - gdf['VOLUMEN M3'].min()) / (gdf['VOLUMEN M3'].max() - gdf['VOLUMEN M3'].min())
+
+    # Crear un gráfico del mapa de Colombia
     fig, ax = plt.subplots(figsize=(10, 10))
     colombia_dataframe.plot(ax=ax, color='lightgray')
 
     # Superponer el mapa de calor con los puntos de los municipios
-    gdf.plot(ax=ax, marker='o', color='red', markersize=5, alpha=0.5)
+    # Color de los puntos dependiendo del volumen movilizado, con un gradiente de color
+    gdf.plot(ax=ax, marker='o', column='VOLUMEN_NORMALIZADO', cmap='YlOrRd', markersize=5, alpha=0.5, legend=True)
 
     # Añadir título y mostrar el mapa
     ax.set_title('Mapa de Calor de Madera Movilizada en Colombia', fontsize=15)
