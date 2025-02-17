@@ -1,15 +1,14 @@
-import geopandas as gpd
-import matplotlib.pyplot as plt
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import geopandas as gpd
 from unidecode import unidecode
+import numpy as np
+from matplotlib import cm
 
 def cargar_datos():
     """
     Permite al usuario cargar un archivo CSV desde una URL o mediante carga manual.
-
-    Returns:
-        pd.DataFrame: DataFrame con los datos cargados.
     """
     opcion = st.radio("Selecciona una opción", ("Cargar archivo desde URL", "Subir archivo"))
 
@@ -26,9 +25,6 @@ def cargar_datos():
 def cargar_datos_municipios():
     """
     Carga el archivo de municipios directamente desde la URL proporcionada.
-
-    Returns:
-        pd.DataFrame: DataFrame con los datos de municipios.
     """
     url_municipios = "https://raw.githubusercontent.com/jeferson-rpo/App_con_ChatGPT/refs/heads/main/DIVIPOLA-_C_digos_municipios_geolocalizados_20250217.csv"
     df_municipios = pd.read_csv(url_municipios)
@@ -44,57 +40,43 @@ def cargar_datos_municipios():
 def cargar_y_relacionar_datos():
     """
     Carga los datos de madera movilizada y los relaciona con los municipios.
-    
-    Returns:
-        pd.DataFrame: DataFrame con los datos relacionados.
     """
-    # Cargar el archivo de madera movilizada desde la URL o mediante carga manual
     df_madera = cargar_datos()
-    
-    # Cargar los datos de los municipios desde la URL
     df_municipios = cargar_datos_municipios()
 
     # Normalizar los nombres de los municipios (quitar tildes y convertir a minúsculas) en df_madera usando vectorización
     df_madera['MUNICIPIO'] = df_madera['MUNICIPIO'].str.lower().apply(unidecode)
 
-    # Relacionar los datos de madera movilizada con los municipios sin duplicar columnas
+    # Relacionar los datos de madera movilizada con los municipios
     df_relacionado = df_madera.merge(df_municipios, how="left", left_on="MUNICIPIO", right_on="NOM_MPIO").drop(columns=["NOM_MPIO"])
     
-    # Convertir el DataFrame a un GeoDataFrame usando las coordenadas de latitud y longitud
-    gdf = gpd.GeoDataFrame(df_relacionado, 
-                           geometry=gpd.points_from_xy(df_relacionado['LONGITUD'], df_relacionado['LATITUD']), 
-                           crs="EPSG:4326")
-    
-    return gdf
+    return df_relacionado
 
-def generar_mapa_calor(gdf):
+def graficar_mapa_calor(gdf):
     """
-    Genera un mapa de calor basado en los volúmenes de madera movilizada por municipio.
-    Superpone los puntos sobre el mapa de Colombia.
+    Genera un mapa de calor de la madera movilizada basado en el volumen por municipio.
 
     Args:
-        gdf (GeoDataFrame): GeoDataFrame con los datos de madera movilizada, incluyendo latitud, longitud y volumen.
+        gdf (pd.DataFrame): DataFrame con las coordenadas y el volumen de madera movilizada.
     """
-    # Cargar el mapa de Colombia (Shapefile)
-    colombia = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-    colombia = colombia[colombia.name == "Colombia"]
-
-    # Crear una figura para el mapa
-    fig, ax = plt.subplots(figsize=(12, 8))
-
-    # Dibujar el mapa de Colombia
-    colombia.plot(ax=ax, color='lightgray')
-
-    # Crear un mapa de calor usando la columna 'VOLUMEN M3' como base para el color
-    gdf.plot(ax=ax, marker='o', column='VOLUMEN M3', cmap='YlOrRd', legend=True, markersize=50)
-
-    # Título del mapa
-    ax.set_title('Mapa de Calor de Madera Movilizada por Municipio')
-
-    # Mostrar el mapa
+    # Usar un mapa de calor para representar el volumen de madera movilizada
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Normalizar el volumen de madera movilizada entre 0 y 1 para la coloración
+    gdf['VOLUMEN NORM'] = np.log1p(gdf['VOLUMEN M3'])  # Usamos log1p para evitar problemas con valores pequeños
+    
+    # Crear el mapa de calor usando los colores del mapa 'YlOrRd'
+    sc = ax.scatter(gdf['LONGITUD'], gdf['LATITUD'], c=gdf['VOLUMEN NORM'], cmap='YlOrRd', s=50, alpha=0.75)
+    
+    # Agregar título
+    ax.set_title('Mapa de Calor de Madera Movilizada', fontsize=15)
+    
+    # Agregar una barra de color
+    fig.colorbar(sc, ax=ax, label='Volumen Madera Movilizada (Log)')
+    
+    # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
 
-# Título de la aplicación
 st.title("Análisis de Madera Movilizada")
 
 # Cargar datos
@@ -103,5 +85,5 @@ gdf = cargar_y_relacionar_datos()
 if gdf is not None:
     st.write("Datos cargados:", gdf)
 
-    # Generar el mapa de calor
-    generar_mapa_calor(gdf)
+    # Graficar mapa de calor
+    graficar_mapa_calor(gdf)
