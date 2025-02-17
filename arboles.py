@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import geopandas as gpd
-from matplotlib.colors import Normalize
+import matplotlib.pyplot as plt
 
 def cargar_datos():
     """
@@ -25,56 +24,42 @@ def cargar_datos():
 
     return None
 
-def graficar_top_10_especies(especies_pais):
+def cargar_coordenadas_municipios():
     """
-    Genera un gráfico de barras con las 10 especies de madera con mayor volumen movilizado.
-    Cada barra tendrá un color diferente.
+    Carga un dataset con las coordenadas de los municipios de Colombia.
+
+    Returns:
+        pd.DataFrame: DataFrame con las coordenadas de los municipios.
+    """
+    # Cargar un dataset con las coordenadas de los municipios de Colombia
+    # Este es un ejemplo, puedes reemplazarlo con tu propio dataset
+    coordenadas_url = "https://raw.githubusercontent.com/jdvelasq/datalabs/master/datasets/divipola/municipios.csv"
+    coordenadas = pd.read_csv(coordenadas_url, sep=";")
+
+    # Seleccionar columnas relevantes (nombre del municipio, latitud, longitud)
+    coordenadas = coordenadas[['municipio', 'latitud', 'longitud']]
+    coordenadas.rename(columns={'municipio': 'MUNICIPIO'}, inplace=True)
+
+    return coordenadas
+
+def generar_mapa_municipios(gdf):
+    """
+    Genera un mapa que muestra la ubicación de los municipios con sus volúmenes de madera.
 
     Args:
-        especies_pais (pd.DataFrame): DataFrame con las especies y su volumen total.
+        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada y coordenadas.
     """
-    # Seleccionar las 10 especies con mayor volumen
-    top_10_especies = especies_pais.head(10)
-
-    # Crear una lista de colores para las barras
-    colores = plt.cm.tab10.colors  # Usar la paleta de colores 'tab10'
-
-    # Crear el gráfico de barras
-    plt.figure(figsize=(10, 6))
-    barras = plt.bar(top_10_especies['ESPECIE'], top_10_especies['VOLUMEN M3'], color=colores)
-    plt.xlabel('Especie')
-    plt.ylabel('Volumen Movilizado (M3)')
-    plt.title('Top 10 Especies con Mayor Volumen Movilizado')
-    plt.xticks(rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
-    plt.tight_layout()  # Ajustar layout para que no se corten las etiquetas
-
-    # Mostrar el gráfico en Streamlit
-    st.pyplot(plt)
-
-def generar_mapa_calor(gdf):
-    """
-    Genera un mapa de calor que muestra la distribución de volúmenes de madera por departamento.
-
-    Args:
-        gdf (pd.DataFrame): DataFrame con los datos de madera movilizada.
-    """
-    # Agrupar los datos por departamento y sumar el volumen
-    volumen_por_depto = gdf.groupby('DPTO')['VOLUMEN M3'].sum().reset_index()
-
-    # Cargar el archivo GeoJSON de países y filtrar solo Colombia
-    ruta_0 = "https://naturalearth.s3.amazonaws.com/50m_cultural/ne_50m_admin_0_countries.zip"
-    mundo_dataframe = gpd.read_file(ruta_0)
-    colombia_dataframe = mundo_dataframe[mundo_dataframe['NAME'] == 'Colombia']
-
-    # Unir los datos de volumen con el GeoDataFrame de Colombia
-    # Nota: Asegúrate de que los nombres de los departamentos coincidan con los del GeoJSON.
-    colombia_dataframe = colombia_dataframe.merge(volumen_por_depto, left_on='NAME', right_on='DPTO', how='left')
-
-    # Crear el mapa de calor
-    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-    colombia_dataframe.plot(column='VOLUMEN M3', cmap='OrRd', linewidth=0.8, ax=ax, edgecolor='0.8', legend=True,
-                            missing_kwds={"color": "lightgrey", "label": "Sin datos"})
-    plt.title('Distribución de Volúmenes de Madera por Departamento en Colombia')
+    # Crear un GeoDataFrame con las coordenadas de los municipios
+    gdf = gpd.GeoDataFrame(
+        gdf, geometry=gpd.points_from_xy(gdf.longitud, gdf.latitud)
+    
+    # Crear el mapa
+    fig, ax = plt.subplots(figsize=(10, 8))
+    mundo = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    mundo[mundo.name == "Colombia"].plot(ax=ax, color='lightgrey')  # Fondo de Colombia
+    gdf.plot(column='VOLUMEN M3', cmap='OrRd', markersize=50, ax=ax, legend=True,
+             legend_kwds={'label': "Volumen de Madera (M3)"})
+    plt.title('Volumen de Madera Movilizada por Municipio en Colombia')
     plt.axis('off')  # Ocultar ejes
 
     # Mostrar el mapa en Streamlit
@@ -99,17 +84,17 @@ def analizar_especies(gdf):
     st.subheader("Especies de madera más comunes a nivel país")
     st.write(especies_pais)
 
-    # Gráfico de barras: Top 10 especies con mayor volumen
-    st.markdown("---")
-    st.markdown("## Gráfico de Barras: Top 10 Especies con Mayor Volumen Movilizado")
-    st.markdown("---")
-    graficar_top_10_especies(especies_pais)
+    # Cargar coordenadas de los municipios
+    coordenadas = cargar_coordenadas_municipios()
 
-    # Mapa de calor: Distribución de volúmenes por departamento en Colombia
+    # Unir los datos de volúmenes con las coordenadas de los municipios
+    gdf_con_coordenadas = gdf.merge(coordenadas, on='MUNICIPIO', how='left')
+
+    # Mostrar el mapa de municipios con volúmenes
     st.markdown("---")
-    st.markdown("## Mapa de Calor: Distribución de Volúmenes por Departamento en Colombia")
+    st.markdown("## Mapa de Volúmenes de Madera por Municipio")
     st.markdown("---")
-    generar_mapa_calor(gdf)
+    generar_mapa_municipios(gdf_con_coordenadas)
 
     # Seleccionar un departamento para el análisis
     depto_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
