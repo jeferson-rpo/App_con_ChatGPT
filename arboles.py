@@ -37,14 +37,14 @@ def cargar_datos_municipios():
     df_municipios['NOM_MPIO'] = df_municipios['NOM_MPIO'].str.lower().apply(unidecode)
     
     # Seleccionar solo las columnas necesarias
-    df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio', 'DPTO']]
+    df_municipios = df_municipios[['NOM_MPIO', 'LATITUD', 'LONGITUD', 'Geo Municipio']]
     
     return df_municipios
 
 def cargar_y_relacionar_datos():
     """
     Carga los datos de madera movilizada y los relaciona con los municipios.
-
+    
     Returns:
         pd.DataFrame: DataFrame con los datos relacionados.
     """
@@ -140,22 +140,22 @@ def analizar_especies(gdf):
     st.markdown("---")
     graficar_top_10_especies(especies_pais)
 
-    # Seleccionar un departamento para el análisis
-    departamento_seleccionado = st.selectbox("Selecciona un departamento", gdf['DPTO'].unique())
+    # Seleccionar un municipio o departamento para el análisis
+    lugar_seleccionado = st.selectbox("Selecciona un municipio o departamento", gdf['MUNICIPIO'].unique())
 
-    # Filtrar datos por departamento seleccionado
-    gdf_dpto = gdf[gdf['DPTO'] == departamento_seleccionado]
-    especies_dpto = gdf_dpto.groupby(['ESPECIE', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
-    especies_dpto = especies_dpto.sort_values(by='VOLUMEN M3', ascending=False)
+    # Filtrar datos por municipio o departamento seleccionado
+    gdf_lugar = gdf[gdf['MUNICIPIO'] == lugar_seleccionado]
+    especies_lugar = gdf_lugar.groupby(['ESPECIE', 'LATITUD', 'LONGITUD'])['VOLUMEN M3'].sum().reset_index()
+    especies_lugar = especies_lugar.sort_values(by='VOLUMEN M3', ascending=False)
 
-    st.subheader(f"Especies de madera más comunes en {departamento_seleccionado}")
-    st.write(especies_dpto)
+    st.subheader(f"Especies de madera más comunes en {lugar_seleccionado}")
+    st.write(especies_lugar)
 
-    # Mostrar el mapa de calor de madera movilizada en el departamento seleccionado
+    # Mostrar el mapa de calor de madera movilizada en el municipio seleccionado
     st.markdown("---")
-    st.markdown(f"## Mapa de Calor de Madera Movilizada en {departamento_seleccionado}")
+    st.markdown(f"## Mapa de Calor de Madera Movilizada en {lugar_seleccionado}")
     st.markdown("---")
-    graficar_mapa_de_calor_colombia(gdf_dpto)
+    graficar_mapa_de_calor_colombia(gdf_lugar)
 
 st.title("Análisis de Madera Movilizada")
 
